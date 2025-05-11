@@ -1,0 +1,151 @@
+import Button from "@mui/material/Button";
+import { RiMenu3Fill } from "react-icons/ri";
+import { IoSettingsOutline } from "react-icons/io5";
+import Badge from "@mui/material/Badge";
+import { FaRegBell } from "react-icons/fa";
+import { styled } from "@mui/material/styles";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import { useContext, useState } from "react";
+import { FaRegUser } from "react-icons/fa";
+import { RiLogoutBoxLine } from "react-icons/ri";
+import { FiActivity } from "react-icons/fi";
+import IconButton from "@mui/material/IconButton";
+import { Divider } from "@mui/material";
+import { Mycontext } from "../../App";
+import { Link } from "react-router-dom";
+export default function Header() {
+  const [anchormyacc, setAnchormyacc] = useState(null);
+  const openMyacc = Boolean(anchormyacc);
+  const handleClickMyacc = (event) => {
+    setAnchormyacc(event.currentTarget);
+  };
+  const handleCloseMyacc = () => {
+    setAnchormyacc(null);
+  };
+  const context = useContext(Mycontext);
+  const StyledBadge = styled(Badge)(({ theme }) => ({
+    "& .MuiBadge-badge": {
+      right: -3,
+      top: 13,
+      border: `2px solid ${(theme.vars ?? theme).palette.background.paper}`,
+      padding: "0 4px",
+    },
+  }));
+  return (
+    <>
+      <header
+        className={`w-full pr-7 h-auto bg-white shadow-md py-2 transition-all duration-300 flex items-center justify-between ${
+          context.isSidebar === true ? "pl-64" : "pl-4"
+        }`}
+      >
+        <Button
+          // onClick={() => context.setisSidebar(!context.isSidebar)}
+          className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full text-[rgba(0,0,0,0.8)]"
+        >
+          {/* <RiMenu3Fill className="text-[18px]" /> */}
+        </Button>
+
+        <div className="part2 w-[40%] flex items-center !justify-end gap-5">
+          <IconButton aria-label="cart">
+            <StyledBadge badgeContent={4} color="secondary">
+              <FaRegBell />
+            </StyledBadge>
+          </IconButton>
+
+          {context.isLogin === true ? (
+            <div className="relative">
+              <div className="rounded-full w-[35px] h-[35px] overflow-hidden cursor-pointer">
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhnJ8ohO113eX3thYt_EViTew3NXN3xwKxi4DzqigRhpA0GY6OWlgY5yZCOqPLda4y5fk&usqp=CAU."
+                  className="w-full h-full object-cover rounded-full"
+                  onClick={handleClickMyacc}
+                />
+              </div>
+
+              <Menu
+                anchorEl={anchormyacc}
+                id="account-menu"
+                open={openMyacc}
+                onClose={handleCloseMyacc}
+                onClick={handleCloseMyacc}
+                slotProps={{
+                  paper: {
+                    elevation: 0,
+                    sx: {
+                      overflow: "visible",
+                      filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                      mt: 1.5,
+                      "& .MuiAvatar-root": {
+                        width: 32,
+                        height: 32,
+                        ml: -0.5,
+                        mr: 1,
+                      },
+                      "&::before": {
+                        content: '""',
+                        display: "block",
+                        position: "absolute",
+                        top: 0,
+                        right: 14,
+                        width: 10,
+                        height: 10,
+                        bgcolor: "background.paper",
+                        transform: "translateY(-50%) rotate(45deg)",
+                        zIndex: 0,
+                      },
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: "right", vertical: "top" }}
+                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+              >
+                <MenuItem onClick={handleCloseMyacc}>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full w-[35px] h-[35px] overflow-hidden cursor-pointer">
+                      <img
+                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhnJ8ohO113eX3thYt_EViTew3NXN3xwKxi4DzqigRhpA0GY6OWlgY5yZCOqPLda4y5fk&usqp=CAU."
+                        className="w-full h-full object-cover rounded-full"
+                        onClick={handleClickMyacc}
+                      />
+                    </div>
+
+                    <div className="info ">
+                      <h3 className="!text-[16px] font-[500] ">
+                        Bilal Kotaish
+                      </h3>
+                      <h3 className="!text-[13px] font-[400] opacity-70">
+                        Bilalkotaish@gmail.com
+                      </h3>
+                    </div>
+                  </div>
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                  onClick={handleCloseMyacc}
+                  className="flex items-center gap-3"
+                >
+                  <FaRegUser /> <span className="text-[14px]">Profile</span>
+                </MenuItem>
+
+                <MenuItem
+                  onClick={handleCloseMyacc}
+                  className="flex items-center gap-3"
+                >
+                  <RiLogoutBoxLine />{" "}
+                  <span className="text-[14px]">Sign Out</span>
+                </MenuItem>
+              </Menu>
+            </div>
+          ) : (
+            <Link to="/login">
+              <Button className="!bg-blue-600 !text-white !rounded-full">
+                Login
+              </Button>
+            </Link>
+          )}
+        </div>
+      </header>
+    </>
+  );
+}
