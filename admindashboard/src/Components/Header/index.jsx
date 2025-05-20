@@ -14,9 +14,30 @@ import IconButton from "@mui/material/IconButton";
 import { Divider } from "@mui/material";
 import { Mycontext } from "../../App";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { fetchData } from "../../utils/api";
+import Addproduct from "../../Pages/Products/Addproducts";
+import AddHomeSlider from "../../Pages/HomeSliderbanner/Addhomeslider";
+import AddCategory from "../../Pages/Category/addCategroy";
+import AddSubCategory from "../../Pages/Category/addSubCategroy";
+import Addadress from "../../Pages/Address/Addadress";
+import EditCategory from "../../Pages/Category/editCategory";
+import Dialog from "@mui/material/Dialog";
+import Toolbar from "@mui/material/Toolbar";
+import AppBar from "@mui/material/AppBar";
+import React from "react";
+import Slide from "@mui/material/Slide";
+import Typography from "@mui/material/Typography";
+import { IoMdClose } from "react-icons/io";
+import EditProduct from "../../Pages/Products/editProduct";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 export default function Header() {
   const [anchormyacc, setAnchormyacc] = useState(null);
   const openMyacc = Boolean(anchormyacc);
+  const history = useNavigate();
   const handleClickMyacc = (event) => {
     setAnchormyacc(event.currentTarget);
   };
@@ -32,6 +53,22 @@ export default function Header() {
       padding: "0 4px",
     },
   }));
+  const logout = () => {
+    setAnchormyacc(null);
+    fetchData(`/api/user/Logout?token=${localStorage.getItem("accesstoken")}`, {
+      withCredentials: true,
+    }).then((res) => {
+      console.log(res);
+      if (res.error === false) {
+        context.setisLogin(false);
+        localStorage.removeItem("accesstoken");
+        localStorage.removeItem("refreshtoken");
+        history("/");
+      } else {
+        context.setisLogin(true);
+      }
+    });
+  };
   return (
     <>
       <header
@@ -112,26 +149,25 @@ export default function Header() {
 
                     <div className="info ">
                       <h3 className="!text-[16px] font-[500] ">
-                        Bilal Kotaish
+                        {context.userData?.name}
                       </h3>
                       <h3 className="!text-[13px] font-[400] opacity-70">
-                        Bilalkotaish@gmail.com
+                        {context?.userData?.email}
                       </h3>
                     </div>
                   </div>
                 </MenuItem>
                 <Divider />
-                <MenuItem
-                  onClick={handleCloseMyacc}
-                  className="flex items-center gap-3"
-                >
-                  <FaRegUser /> <span className="text-[14px]">Profile</span>
-                </MenuItem>
+                <Link to="/profile">
+                  <MenuItem
+                    onClick={handleCloseMyacc}
+                    className="flex items-center gap-3"
+                  >
+                    <FaRegUser /> <span className="text-[14px]">Profile</span>
+                  </MenuItem>
+                </Link>
 
-                <MenuItem
-                  onClick={handleCloseMyacc}
-                  className="flex items-center gap-3"
-                >
+                <MenuItem onClick={logout} className="flex items-center gap-3">
                   <RiLogoutBoxLine />{" "}
                   <span className="text-[14px]">Sign Out</span>
                 </MenuItem>
@@ -146,6 +182,36 @@ export default function Header() {
           )}
         </div>
       </header>
+
+      <Dialog
+        fullScreen
+        open={context.isOpenPanel.open}
+        onClose={() => context.setisOpenPanel({ open: false })}
+        TransitionComponent={Transition}
+      >
+        <AppBar sx={{ position: "relative" }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => context.setisOpenPanel({ open: false })}
+              aria-label="close"
+            >
+              <IoMdClose />
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              {context.isOpenPanel?.model}
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        {context.isOpenPanel.model === "Add Product" && <Addproduct />}
+        {context.isOpenPanel.model === "AddBannerslider" && <AddHomeSlider />}
+        {context.isOpenPanel.model === "Add Category" && <AddCategory />}
+        {context.isOpenPanel.model === "Add SubCategory" && <AddSubCategory />}
+        {context.isOpenPanel.model === "Add Address" && <Addadress />}
+        {context.isOpenPanel.model === "Edit Category" && <EditCategory />}
+        {context.isOpenPanel.model === "Edit Product" && <EditProduct />}
+      </Dialog>
     </>
   );
 }

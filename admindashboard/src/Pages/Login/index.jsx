@@ -3,18 +3,106 @@ import { CgLogIn } from "react-icons/cg";
 import { MdOutlineFollowTheSigns } from "react-icons/md";
 import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { Mycontext } from "../../App";
 import { FaFacebookSquare } from "react-icons/fa";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import CircularProgress from "@mui/material/CircularProgress";
+
+import { postData } from "../../utils/api";
+
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [loadingfb, setLoadingfb] = useState(false);
   const [isShowPass, setisShowPass] = useState(false);
+  const [isLoading, setisLoading] = useState(false);
+
+  const context = useContext(Mycontext);
+
+  const [formfield, setformfield] = useState({
+    email: "",
+    password: "",
+  });
+  const history = useNavigate();
+  const validValue = Object.values(formfield).every((el) => el);
+
+  const onChangeInput = (e) => {
+    const { name, value } = e.target;
+    setformfield(() => {
+      return {
+        ...formfield,
+        [name]: value,
+      };
+    });
+  };
+  const handlesubmit = (e) => {
+    setisLoading(true);
+    e.preventDefault();
+
+    if (formfield.email === "") {
+      context.Alertbox("error", "Please Provide Your Email");
+      return false;
+    }
+    if (formfield.password === "") {
+      context.Alertbox("error", "Please Provide Your Password");
+      return false;
+    }
+
+    postData("/api/user/login", formfield, { withCredentials: true }).then(
+      (res) => {
+        if (res.error !== true) {
+          setisLoading(false);
+          context.Alertbox("success", res.message);
+          localStorage.setItem("userEmail", formfield.email);
+          console.log(res);
+          setformfield({
+            email: "",
+            password: "",
+          });
+          localStorage.setItem("accesstoken", res.data.accesstoken);
+          localStorage.setItem("refreshtoken", res.data.refreshToken);
+          context.setisLogin(true);
+
+          history("/");
+        } else {
+          context.Alertbox("error", res.message);
+          setisLoading(false);
+          context.setisLogin(false);
+        }
+      }
+    );
+  };
+  const forgetPassword = () => {
+    if (formfield.email === "") {
+      context.Alertbox("error", "Please Provide Your Email");
+      return false;
+    } else {
+      context.Alertbox(
+        "success",
+        `The verification code is sent to ${formfield.email}`
+      );
+      localStorage.setItem("userEmail", formfield.email);
+      localStorage.setItem("action-type", "forgetPassword");
+      postData("/api/user/forgetpassword", {
+        email: localStorage.getItem("userEmail"),
+      }).then((res) => {
+        console.log(res);
+        if (res.success) {
+          context.Alertbox("success", res.message);
+
+          //localStorage.removeItem("userEmail"),
+          history("/verify");
+        } else {
+          context.Alertbox("error", res.message);
+        }
+      });
+    }
+  };
 
   function handleClick() {
     setLoading(true);
@@ -97,11 +185,15 @@ export default function Login() {
           <span className="flex items-center w-[100px] h-[2px] bg-slate-300"></span>
         </div>
 
-        <form className="w-full px-8">
+        <form className="w-full px-8" onSubmit={handlesubmit}>
           <div className="w-full form-group mb-4">
             <h4>Email</h4>
             <input
               type="email"
+              disabled={isLoading}
+              value={formfield.email}
+              onChange={onChangeInput}
+              name="email"
               className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
             />
@@ -110,6 +202,10 @@ export default function Login() {
             <h4>Password</h4>
             <div className="relative w-full">
               <input
+                disabled={isLoading}
+                name="password"
+                value={formfield.password}
+                onChange={onChangeInput}
                 type={isShowPass === true ? "text" : "password"}
                 className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
@@ -131,15 +227,23 @@ export default function Login() {
               control={<Checkbox defaultChecked />}
               label="Remember Me"
             />
-            <Link
-              to="/forgetpassword"
-              className="text-[14px] text-primary font-[600] hover:underline hover:text-[rgba(0,0,0,0.7)]"
+
+            <a
+              className="link cursor-pointer text-[14px] font-[500] "
+              onClick={forgetPassword}
             >
               Forgot Password?
-            </Link>
+            </a>
           </div>
 
-          <Button className=" !bg-black !text-white w-full"> Sign In</Button>
+          <Button
+            type="submit"
+            disabled={!validValue}
+            className="!bg-black !text-white w-full gap-3"
+          >
+            Login
+            {isLoading === true ? <CircularProgress color="inherit" /> : ""}
+          </Button>
           <h2 className="text-[13px]  text-gray-700 cursor-pointer pt-3">
             New here?
             <Link

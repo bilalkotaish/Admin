@@ -1,26 +1,40 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { IoMdCloudUpload } from "react-icons/io";
 import { IoCloseSharp } from "react-icons/io5";
 import FileUploadBox from "../../Components/UploadBox";
 import Button from "@mui/material/Button";
-import { deleteData, fetchData, postData } from "../../utils/api";
+import { deleteData, editData, postData } from "../../utils/api";
 import { Mycontext } from "../../App";
 import CircularProgress from "@mui/material/CircularProgress";
-import { useNavigate } from "react-router-dom";
+import { fetchData } from "../../utils/api";
 
-export default function AddCategory() {
+export default function EditCategory() {
   const [preview, setpreview] = useState([]);
   const [isLoading, setisLoading] = useState(false);
 
   const context = useContext(Mycontext);
-  const history = useNavigate();
 
   const [formfields, setformfields] = useState({
     name: "",
     images: [],
   });
+  useEffect(() => {
+    const id = context.isOpenPanel?.id;
+    console.log("Panel ID:", id);
+    if (id) {
+      fetchData(`/api/category/${id}`).then((res) => {
+        console.log(res);
+        setformfields({
+          name: res.name,
+          images: res.images,
+        });
+        setpreview(res.images);
+      });
+    }
+  }, [context.isOpenPanel?.id]);
+
   const onChangeInput = (e) => {
     console.log(e.target.name);
     const { name, value } = e.target;
@@ -28,6 +42,7 @@ export default function AddCategory() {
       return { ...formfields, [name]: value };
     });
   };
+
   const setpreviewfun = (previewArr) => {
     setpreview([...preview, ...previewArr]);
     setformfields({
@@ -62,22 +77,23 @@ export default function AddCategory() {
       return false;
     }
 
-    postData("/api/category/create", formfields).then((res) => {
-      if (res.error !== true) {
-        setisLoading(false);
-        context.Alertbox("success", res.message);
-        console.log(res);
-        setformfields({
-          name: "",
-          images: [],
-        });
-        setpreview([]);
-        context.setisOpenPanel(false);
-        history("/categorylist");
-      } else {
-        context.Alertbox("error", res.message);
+    editData(`/api/category/${context.isOpenPanel.id}`, formfields).then(
+      (res) => {
+        if (res.error !== true) {
+          setisLoading(false);
+          context.Alertbox("success", res.message);
+          console.log(res);
+          setformfields({
+            name: "",
+            images: [],
+          });
+          setpreview([]);
+          context.setisOpenPanel(false);
+        } else {
+          context.Alertbox("error", res.message);
+        }
       }
-    });
+    );
   };
 
   return (
@@ -90,7 +106,7 @@ export default function AddCategory() {
               <input
                 type="text"
                 name="name"
-                value={formfields?.name}
+                value={formfields.name}
                 onChange={onChangeInput}
                 className="w-full h-[35px] rounded-md p-5 border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.5)]"
               />
@@ -126,11 +142,7 @@ export default function AddCategory() {
                   </div>
                 ))}
 
-              <FileUploadBox
-                multiple={true}
-                url="/api/category/upload"
-                setpreviewfun={setpreviewfun}
-              />
+              <FileUploadBox multiple={true} setpreviewfun={setpreviewfun} />
             </div>
           </div>
 
@@ -138,7 +150,7 @@ export default function AddCategory() {
             type="submit"
             className="!bg-primary !text-white items-center mt-4 w-full !pr-2 gap-2 !pl-12"
           >
-            <IoMdCloudUpload className="text-[25px] " /> Publish Category
+            <IoMdCloudUpload className="text-[25px] " /> Publish Product
             {isLoading && <CircularProgress color="inherit" size={20} />}
           </Button>
         </form>

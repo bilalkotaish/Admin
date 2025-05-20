@@ -19,7 +19,6 @@ export default function Users() {
 
   return (
     <>
-      <div className="flex items-center justify-between px-2 py-0 mt-3"></div>
       <div className="card my-3 shadow-md sm:rounded-lg bg-white">
         <div className="flex items-center w-full pl-4 justify-between pr-6">
           <h1 className="text-[25px] pt-12 font-[600]">Users List</h1>

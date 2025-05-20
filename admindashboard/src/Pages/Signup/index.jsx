@@ -11,11 +11,34 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { Mycontext } from "../../App";
+import CircularProgress from "@mui/material/CircularProgress";
+import { postData } from "../../utils/api.js";
 
 export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [loadingfb, setLoadingfb] = useState(false);
   const [isShowPass, setisShowPass] = useState(false);
+  const [isLoading, setisLoading] = useState(false);
+  const [formFields, setformFields] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const onChangeInput = (e) => {
+    const { name, value } = e.target;
+    setformFields(() => {
+      return {
+        ...formFields,
+        [name]: value,
+      };
+    });
+  };
+  const context = useContext(Mycontext);
+  const history = useNavigate();
+  const validValue = Object.values(formFields).every((el) => el);
 
   function handleClick() {
     setLoading(true);
@@ -23,6 +46,41 @@ export default function Signup() {
   function handleClickfb() {
     setLoadingfb(true);
   }
+  const handlesubmit = (e) => {
+    setisLoading(true);
+    e.preventDefault();
+    if (formFields.name === "") {
+      context.Alertbox("error", "Please Provide Your Name");
+      return false;
+    }
+    if (formFields.email === "") {
+      context.Alertbox("error", "Please Provide Your Email");
+      return false;
+    }
+    if (formFields.password === "") {
+      context.Alertbox("error", "Please Provide Your Password");
+      return false;
+    }
+
+    postData("/api/user/register", formFields).then((res) => {
+      if (res.error !== true) {
+        setisLoading(false);
+        context.Alertbox("success", res.message);
+        localStorage.setItem("userEmail", formFields.email);
+        console.log(res);
+        setformFields({
+          name: "",
+          email: "",
+          password: "",
+        });
+
+        history("/verify");
+      } else {
+        context.Alertbox("error", res.message);
+        setisLoading(false);
+      }
+    });
+  };
   return (
     <section className="relative bg-white loginsection">
       <header className="w-full fixed z-50 !top-0 !left-0 px-4 py-2 flex !items-center !justify-between">
@@ -98,13 +156,17 @@ export default function Signup() {
           <span className="flex items-center w-[100px] h-[2px] bg-slate-300"></span>
         </div>
 
-        <form className="w-full px-8">
+        <form className="w-full px-8" onSubmit={handlesubmit}>
           <div className="w-full form-group mb-4">
             <h4>FullName</h4>
             <input
               type="text"
               className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
+              name="name"
+              value={formFields.name}
+              disabled={isLoading === true ? true : false}
+              onChange={onChangeInput}
             />
           </div>
           <div className="w-full form-group mb-4">
@@ -113,6 +175,10 @@ export default function Signup() {
               type="email"
               className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
+              disabled={isLoading === true ? true : false}
+              value={formFields.email}
+              name="email"
+              onChange={onChangeInput}
             />
           </div>
           <div className="w-full form-group mb-4">
@@ -122,6 +188,10 @@ export default function Signup() {
                 type={isShowPass === true ? "text" : "password"}
                 className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
+                name="password"
+                disabled={isLoading}
+                value={formFields.password}
+                onChange={onChangeInput}
               />
               <Button
                 className="!absolute top-[7px] right-[7px] z-50 !rounded-full !w-[35px] !h-[35px] !min-w-[35px]"
@@ -142,7 +212,16 @@ export default function Signup() {
             />
           </div>
 
-          <Button className=" !bg-black !text-white w-full"> Sign Up</Button>
+          <div className="flex !items-center mt-3 mb-3">
+            <Button
+              type="submit"
+              disabled={!validValue}
+              className="btn-org w-full gap-3"
+            >
+              Sign Up
+              {isLoading === true ? <CircularProgress color="inherit" /> : ""}
+            </Button>
+          </div>
           <h2 className="text-[13px]  text-gray-700 cursor-pointer pt-3">
             Already Have An Account?
             <Link

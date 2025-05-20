@@ -1,151 +1,104 @@
-import { Button, Pagination, Tooltip } from "@mui/material";
-import { AiTwotoneEdit } from "react-icons/ai";
-import { MdOutlineDeleteOutline } from "react-icons/md";
-import Checkbox from "@mui/material/Checkbox";
-import { IoEyeOutline } from "react-icons/io5";
-import { BiExport } from "react-icons/bi";
-import { FaPlus } from "react-icons/fa6";
-import Chip from "@mui/material/Chip";
-
+import Button from "@mui/material/Button";
+import { FaAngleDown, FaAngleUp, FaPlus } from "react-icons/fa6";
 import { Mycontext } from "../../App";
-import { useContext } from "react";
-export default function SubCategoryList() {
-  const label = { inputProps: { "aria-label": "Checkbox demo" } };
-  const context = useContext(Mycontext);
+import { useContext, useState } from "react";
+import EditSubcat from "./editSubcat";
 
-  const banners = [
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-  ];
+export default function SubCategoryList() {
+  const context = useContext(Mycontext);
+  const [isOpen, setOpen] = useState(false);
+
+  const expand = (index) => {
+    setOpen((prev) => (prev === index ? false : index));
+  };
 
   return (
-    <div className="card my-6 shadow-lg sm:rounded-xl bg-white border border-gray-100">
-      <h2 className="px-6 py-4 text-xl font-semibold text-gray-800 ">
-        Sub Category List{" "}
-      </h2>
-      <div className="flex items-center justify-end gap-4 mt-4 mb-5 pr-4 px-2 py-0 mt-3">
-        <Button className="flex items-center justify-center gap-2 !bg-green-500 hover:bg-green-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap">
-          Export <BiExport className="text-[20px] font-semibold" />
-        </Button>
-
-        <Button
-          onClick={() =>
-            context.setisOpenPanel({ open: true, model: "Add SubCategory" })
-          }
-          className="flex items-center justify-center gap-2 !bg-blue-500 hover:bg-blue-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap"
-        >
-          Add Sub Category <FaPlus className="text-[15px] font-semibold" />
-        </Button>
+    <>
+      {/* Header Card */}
+      <div className="card my-6 shadow-lg sm:rounded-xl bg-white border border-gray-100">
+        <h2 className="px-6 py-4 text-xl font-semibold text-gray-800">
+          Sub Category List
+        </h2>
+        <div className="flex items-center justify-end gap-4 mb-4 pr-4">
+          <Button
+            onClick={() =>
+              context.setisOpenPanel({ open: true, model: "Add SubCategory" })
+            }
+            className="flex items-center justify-center gap-2 !bg-blue-500 hover:bg-blue-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap"
+          >
+            Add Sub Category <FaPlus className="text-[15px]" />
+          </Button>
+        </div>
       </div>
-      <div className="overflow-x-auto rounded-lg">
-        <table className="w-full text-sm text-left text-gray-600">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 w-12">
-                <Checkbox size="small" {...label} />
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Sub Category Image
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Category Name
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Sub Category Name
-              </th>
-              <th scope="col" className="px-6 py-3 pr-56 text-right">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {banners.map((banner, idx) => (
-              <tr
-                key={idx}
-                className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
-              >
-                <td className="px-6 py-4">
-                  <Checkbox {...label} size="small" />
-                </td>
 
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <img
-                      src={banner.image}
-                      alt="Banner"
-                      className="w-[80px] h-[100px] object-cover rounded-md shadow-sm hover:scale-105 border border-gray-200"
-                    />
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <span className="text-[14px] inline-block p-1 px-5">
-                      {" "}
-                      <Chip label="Fashion" />
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <span className="text-[14px] inline-block p-1 px-5">
-                      {" "}
-                      <Chip label="Men" />
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4  pr-56">
-                  <div className="flex justify-end items-center space-x-2">
-                    <Tooltip title="Edit" placement="top" arrow>
-                      <Button
-                        className="!min-w-[32px] !h-8 !p-0 !bg-green-50 hover:!bg-green-100 !rounded-md"
-                        variant="text"
+      {/* Categories & Subcategories List */}
+      <div className="card my-3 pt-5 pb-5 px-4 shadow-md sm:rounded-lg bg-white">
+        {context.catData.length !== 0 && (
+          <ul className="w-full space-y-4">
+            {context.catData.map((firstlevel, index) => (
+              <li key={index}>
+                {/* Main Category Row */}
+                <div className="flex items-center justify-between gap-4 py-2 border-b border-gray-200 bg-[#f1f1f1] px-4 rounded-md">
+                  <span className="text-[15px] font-semibold text-gray-800">
+                    {firstlevel.name}
+                  </span>
+                  <Button
+                    onClick={() => expand(index)}
+                    className="!w-[35px] !h-[35px] !p-2 !rounded-full hover:!bg-primary hover:!text-white !text-black"
+                  >
+                    {isOpen === index ? <FaAngleDown /> : <FaAngleUp />}
+                  </Button>
+                </div>
+
+                {/* Subcategories */}
+                {isOpen === index && firstlevel.children?.length > 0 && (
+                  <ul className="mt-3 ml-6 space-y-3">
+                    {firstlevel.children.map((secondlevel, subIndex) => (
+                      <li
+                        key={subIndex}
+                        className="bg-gray-50 px-4 py-2 rounded-md shadow-sm"
                       >
-                        <AiTwotoneEdit className="text-green-600 text-lg" />
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Delete" placement="top" arrow>
-                      <Button
-                        className="!min-w-[32px] !h-8 !p-0 !bg-red-50 hover:!bg-red-100 !rounded-md"
-                        variant="text"
-                      >
-                        <MdOutlineDeleteOutline className="text-red-600 text-lg" />
-                      </Button>
-                    </Tooltip>
-                  </div>
-                </td>
-              </tr>
+                        <EditSubcat
+                          name={secondlevel.name}
+                          id={secondlevel._id}
+                          catData={context.catData}
+                          index={subIndex}
+                          selectedCat={secondlevel.parentId}
+                          selectedCatname={secondlevel.parentName}
+                          subcat={context.catData}
+                        />
+
+                        {secondlevel?.children.length > 0 && (
+                          <ul className="mt-3 ml-6 space-y-3">
+                            {secondlevel.children.map(
+                              (thirdlevel, thirdIndex) => (
+                                <li
+                                  key={thirdIndex}
+                                  className="bg-gray-50 px-4 py-2 rounded-md shadow-sm"
+                                >
+                                  <EditSubcat
+                                    name={thirdlevel.name}
+                                    id={thirdlevel._id}
+                                    catData={secondlevel.children}
+                                    index={thirdIndex}
+                                    selectedCat={thirdlevel.parentId}
+                                    selectedCatname={thirdlevel.parentName}
+                                    subcat={firstlevel.children}
+                                  />
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        )}
       </div>
-
-      <div className="flex !justify-end items-center px-6 py-4 border-t border-gray-200">
-        <Pagination
-          count={5}
-          color="primary"
-          shape="rounded"
-          size="medium"
-          className="[&_.MuiPaginationItem-root]:!rounded-md "
-        />
-      </div>
-    </div>
+    </>
   );
 }

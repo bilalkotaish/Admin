@@ -7,49 +7,89 @@ import { createContext, useState } from "react";
 import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
 import Product from "./Pages/Products";
-import Button from "@mui/material/Button";
-
-import Dialog from "@mui/material/Dialog";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemButton from "@mui/material/ListItemButton";
-import List from "@mui/material/List";
-import Divider from "@mui/material/Divider";
-import AppBar from "@mui/material/AppBar";
 import React from "react";
 import Slide from "@mui/material/Slide";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import { IoMdClose } from "react-icons/io";
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-import Addproduct from "./Pages/Products/Addproducts";
 import HomeBanner from "./Pages/HomeSliderbanner";
-import AddHomeSlider from "./Pages/HomeSliderbanner/Addhomeslider";
 import CategoryList from "./Pages/Category";
-import AddCategory from "./Pages/Category/addCategroy";
 import SubCategoryList from "./Pages/Category/Subcatlist";
-import AddSubCategory from "./Pages/Category/addSubCategroy";
+import toast, { Toaster } from "react-hot-toast";
 import Users from "./Pages/Users";
 import Orders from "./Pages/Orders";
 import ForgetPassword from "./Pages/ForgetPass";
 import Verify from "./Pages/Verify";
 import ChangePassword from "./Pages/ChangePassword";
+import { useEffect } from "react";
+import { fetchData } from "./utils/api";
+import Profile from "./Pages/Profile";
+import ProductDetails from "./Pages/Products/productdetails";
 const Mycontext = createContext();
 function App() {
   const [isSidebar, setisSidebar] = useState(true);
   const [isLogin, setisLogin] = useState(false);
+  const [userData, setuserData] = useState(null);
+  const [catData, setCatData] = useState([]);
   const [isOpenPanel, setisOpenPanel] = useState({
     open: false,
     model: "",
+    id: null,
   });
+  const Alertbox = (status, msg) => {
+    if (status === "success") {
+      toast.success(msg);
+    }
+    if (status === "error") {
+      toast.error(msg);
+    }
+  };
+  useEffect(() => {
+    const token = localStorage.getItem("accesstoken");
+
+    if (token) {
+      setisLogin(true);
+      fetchData(`/api/user/userdetails`)
+        .then((res) => {
+          if (res.error) {
+            throw res;
+          }
+          setuserData(res.data);
+        })
+        .catch((err) => {
+          const message = err?.message || err?.response?.data?.message;
+
+          if (message === "You Are Not Logged In") {
+            localStorage.removeItem("accesstoken");
+            localStorage.removeItem("refreshToken");
+            Alertbox("error", "Your session has expired");
+            setisLogin(false);
+          } else {
+            Alertbox("error", "An error occurred while fetching user data");
+          }
+        });
+    } else {
+      setisLogin(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData("/api/category/getcategory").then((res) => {
+      console.log("Fetched category data:", res);
+      setCatData(res.categories || []);
+    });
+  }, []);
 
   const values = {
     setisSidebar,
     isSidebar,
     isLogin,
+    Alertbox,
+    userData,
+    setuserData,
     setisLogin,
+    catData,
+    setCatData,
     isOpenPanel,
     setisOpenPanel,
   };
@@ -281,6 +321,56 @@ function App() {
           </section>
         ),
       },
+      {
+        path: "/profile",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <Profile />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        path: "/product/:id",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <ProductDetails />
+              </div>
+            </div>
+          </section>
+        ),
+      },
     ],
     {
       future: {
@@ -292,32 +382,7 @@ function App() {
   return (
     <Mycontext.Provider value={values}>
       <RouterProvider router={router} />
-      <Dialog
-        fullScreen
-        open={isOpenPanel.open}
-        onClose={() => setisOpenPanel({ open: false })}
-        TransitionComponent={Transition}
-      >
-        <AppBar sx={{ position: "relative" }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={() => setisOpenPanel({ open: false })}
-              aria-label="close"
-            >
-              <IoMdClose />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              {isOpenPanel?.model}
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        {isOpenPanel.model === "Add Product" && <Addproduct />}
-        {isOpenPanel.model === "AddBannerslider" && <AddHomeSlider />}
-        {isOpenPanel.model === "Add Category" && <AddCategory />}
-        {isOpenPanel.model === "Add SubCategory" && <AddSubCategory />}
-      </Dialog>
+      <Toaster />;
     </Mycontext.Provider>
   );
 }

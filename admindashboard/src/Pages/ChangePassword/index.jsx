@@ -5,16 +5,77 @@ import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { FaFacebookSquare } from "react-icons/fa";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import { Mycontext } from "../../App";
+import { useNavigate } from "react-router-dom";
+import CircularProgress from "@mui/material/CircularProgress";
+import { postData } from "../../utils/api";
+
 export default function ChangePassword() {
   const [isShowPass, setisShowPass] = useState(false);
   const [isShowPass1, setisShowPass1] = useState(false);
+  const [isLoading, setisLoading] = useState(false);
+  const [formfield, setformfield] = useState({
+    email: localStorage.getItem("userEmail"),
 
+    password: "",
+    confirmPassword: "",
+  });
+  const context = useContext(Mycontext);
+  const history = useNavigate();
+  const validValue = Object.values(formfield).every((el) => el);
+  const onChangeInput = (e) => {
+    const { name, value } = e.target;
+    setformfield(() => {
+      return {
+        ...formfield,
+        [name]: value,
+      };
+    });
+  };
+  const handlesubmit = (e) => {
+    setisLoading(true);
+    e.preventDefault();
+
+    if (formfield.password === "") {
+      context.Alertbox("error", "Please Provide Your Password");
+      setisLoading(false);
+      return false;
+    }
+
+    if (formfield.confirmPassword === "") {
+      context.Alertbox("error", "Please Provide Your Confirm Password");
+      setisLoading(false);
+      return false;
+    }
+    if (formfield.confirmPassword !== formfield.password) {
+      context.Alertbox("error", "Password doesn't match");
+      setisLoading(false);
+      return false;
+    }
+    postData(`/api/user/reset-password`, {
+      email: localStorage.getItem("userEmail"),
+      password: formfield.password,
+      confirmPassword: formfield.confirmPassword,
+    }).then((res) => {
+      if (res.error === false) {
+        setisLoading(false);
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("action-type");
+        context.Alertbox("success", "Password Reset Successfully");
+
+        history("/login");
+      } else {
+        context.Alertbox("error", res.message);
+        setisLoading(false);
+      }
+    });
+  };
   return (
     <section className="relative bg-white loginsection">
       <header className="w-full fixed z-50 !top-0 !left-0 px-4 py-2 flex !items-center !justify-between">
@@ -58,18 +119,16 @@ export default function ChangePassword() {
 
         <br />
 
-        <div className="w-full flex items-center justify-center gap-3">
-          <span className="flex items-center w-[100px] h-[2px] bg-slate-300"></span>
-          <span className="text-[13px]"> Or Sign In With Your Email</span>
-          <span className="flex items-center w-[100px] h-[2px] bg-slate-300"></span>
-        </div>
-
-        <form className="w-full px-8">
+        <form className="w-full px-8" onSubmit={handlesubmit}>
           <div className="w-full form-group mb-4">
             <h4>New Password</h4>
             <div className="relative w-full">
               <input
                 type={isShowPass1 === true ? "text" : "password"}
+                disabled={isLoading}
+                value={formfield.password}
+                onChange={onChangeInput}
+                name="password"
                 className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
               />
@@ -89,6 +148,10 @@ export default function ChangePassword() {
             <h4>Confirm Password</h4>
             <div className="relative w-full">
               <input
+                disabled={isLoading}
+                value={formfield.confirmPassword}
+                onChange={onChangeInput}
+                name="confirmPassword"
                 type={isShowPass === true ? "text" : "password"}
                 className="w-full h-[45px] border border-[rgba(0,0,0,0.1)] rounded-md focus:border-[rgba(0,0,0,0.7)] 
               focus:outline-none px-3"
@@ -105,7 +168,7 @@ export default function ChangePassword() {
               </Button>
             </div>
           </div>
-          <div className="w-full form-group mb-4 flex items-center justify-between">
+          {/* <div className="w-full form-group mb-4 flex items-center justify-between">
             <FormControlLabel
               control={<Checkbox defaultChecked />}
               label="Remember Me"
@@ -116,13 +179,17 @@ export default function ChangePassword() {
             >
               Forgot Password?
             </Link>
-          </div>
-          <Link to="/login">
-            <Button className=" !bg-black !text-white w-full">
-              {" "}
-              Reset Your Password
+          </div> */}
+          <div className="flex !items-center mt-3 mb-3">
+            <Button
+              disabled={!validValue || isLoading}
+              type="submit"
+              className="!bg-black !text-white w-full gap-3"
+            >
+              Reset Password
+              {isLoading === true ? <CircularProgress color="inherit" /> : ""}
             </Button>
-          </Link>
+          </div>
         </form>
         <br />
         <br />

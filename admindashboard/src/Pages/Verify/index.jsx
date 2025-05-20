@@ -13,6 +13,7 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import OtpBox from "../../Components/OtpBox";
 export default function Verify() {
+  const userEmail = localStorage.getItem("userEmail");
   return (
     <section className="relative bg-white loginsection">
       <header className="w-full fixed z-50 !top-0 !left-0 px-4 py-2 flex !items-center !justify-between">
@@ -58,7 +59,7 @@ export default function Verify() {
         <p className="text-center mt-3">
           {" "}
           Otp send to{" "}
-          <span className="text-red-700 pb-4 font-[600]">Bilal@gmail.com</span>
+          <span className="text-red-700 pb-4 font-[600]">{userEmail}</span>
         </p>
         <div className="text-center">
           <OtpBox />

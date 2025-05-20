@@ -12,10 +12,12 @@ import { useContext, useState } from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import FileUploadBox from "../../Components/UploadBox";
 import { Mycontext } from "../../App";
-import { deleteData, postData } from "../../utils/api";
+import { deleteData, editData, fetchData, postData } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 
-export default function Addproduct() {
+export default function EditProduct() {
   const [Cat, setCat] = useState("");
   const [subCat, setsubCat] = useState("");
   const [thirdsubCat, setthirdsubCat] = useState("");
@@ -114,6 +116,42 @@ export default function Addproduct() {
       return { ...formfields, rating: e.target.value };
     });
   };
+  useEffect(() => {
+    fetchData(`/api/product/${context.isOpenPanel.id}`).then((res) => {
+      console.log(context.isOpenPanel.id);
+      setformfields({
+        name: res?.data?.name,
+        images: res?.data?.images,
+        price: res?.data?.price,
+        description: res?.data?.description,
+        brand: res?.data?.brand,
+        oldprice: res?.data?.oldprice,
+        rating: res?.data?.rating,
+        category: res?.data?.category,
+        catname: res?.data?.catname,
+        catId: res?.data?.catId,
+        subcatname: res?.data?.subcatname,
+        subcatId: res?.data?.subcatId,
+        thirdsubname: res?.data?.thirdsubname,
+        thirdsubcatId: res?.data?.thirdsubcatId,
+        countInStock: res?.data?.countInStock,
+        isFeatured: res?.data?.isFeatured,
+        discount: res?.data?.discount,
+        productRam: res?.data?.productRam,
+        size: res?.data?.size,
+        productweight: res?.data?.productweight,
+      });
+      setpreview(res?.data?.images);
+      setCat(res?.data?.catId);
+      setsubCat(res?.data?.subcatId);
+      setthirdsubCat(res?.data?.thirdsubcatId);
+      setsubfet(res?.data?.isFeatured);
+
+      setpram(res?.data?.productRam);
+      setpweight(res?.data?.productweight);
+      setpsize(res?.data?.size);
+    });
+  }, []);
 
   const setpreviewfun = (previewArr) => {
     setpreview([...preview, ...previewArr]);
@@ -207,14 +245,17 @@ export default function Addproduct() {
       context.Alertbox("error", "Please Provide Product Featured");
       return false;
     }
-    postData("/api/product/create", formfields).then((res) => {
+    editData(
+      `/api/product/updateProduct/${context.isOpenPanel.id}`,
+      formfields
+    ).then((res) => {
       if (res.error !== true) {
         setisLoading(false);
         context.Alertbox("success", res.message);
         console.log(res);
 
-        setpreview([]);
         context.setisOpenPanel(false);
+        setpreview([]);
         history("/product");
       } else {
         context.Alertbox("error", res.message);
@@ -475,7 +516,7 @@ export default function Addproduct() {
                 <h3 className="text-[16px] font-[600] mb-4">Product Rating</h3>
                 <Rating
                   name="half-rating"
-                  defaultValue={2.5}
+                  value={formfields.rating}
                   onChange={onChangeRating}
                   precision={0.5}
                 />

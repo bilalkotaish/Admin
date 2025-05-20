@@ -1,9 +1,16 @@
 import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { Mycontext } from "../../App";
+import { postData } from "../../utils/api";
 
 const OtpBox = () => {
   const [otp, setOtp] = useState(new Array(6).fill("")); // ['','','','','','']
   const inputRefs = useRef([]);
+  const histroy = useNavigate();
+  const context = useContext(Mycontext);
+  const actiontype = localStorage.getItem("action-type");
 
   // Handle single input change
   const handleChange = (element, index) => {
@@ -41,13 +48,41 @@ const OtpBox = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const verifyOtp = () => {
     const fullOtp = otp.join("");
     if (fullOtp.length < 6) {
       alert("Please enter all 6 digits");
+      return;
+    }
+    if (actiontype !== "forgetPassword") {
+      postData("/api/user/verify", {
+        email: localStorage.getItem("userEmail"),
+        otp: fullOtp,
+      }).then((res) => {
+        console.log(res);
+        if (res.success) {
+          context.Alertbox("success", res.message);
+          localStorage.removeItem("userEmail"), histroy("/login");
+          // redirect or next action
+        } else {
+          context.Alertbox("error", res.message);
+        }
+      });
     } else {
-      alert("OTP Submitted: " + fullOtp);
-      // You can send OTP to backend here
+      postData("/api/user/verify-forgetpassword", {
+        email: localStorage.getItem("userEmail"),
+        otp: fullOtp,
+      }).then((res) => {
+        console.log(res);
+
+        if (res.success) {
+          context.Alertbox("success", res.message);
+          histroy("/changepassword");
+          // redirect or next action
+        } else {
+          context.Alertbox("error", res.message);
+        }
+      });
     }
   };
 
@@ -67,14 +102,13 @@ const OtpBox = () => {
             />
           ))}
         </div>
-        <Link to="/ChangePassword">
-          <button
-            onClick={handleSubmit}
-            className="!bg-black text-white px-6 py-2 rounded hover:bg-gray-700"
-          >
-            Submit OTP
-          </button>
-        </Link>
+
+        <button
+          onClick={verifyOtp}
+          className="!bg-black text-white px-6 py-2 rounded hover:bg-gray-700"
+        >
+          Submit OTP
+        </button>
       </div>
     </>
   );
