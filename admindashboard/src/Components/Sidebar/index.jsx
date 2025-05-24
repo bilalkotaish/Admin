@@ -146,6 +146,30 @@ export default function Sidebar() {
                       Add Products
                     </Button>
                   </li>
+                  <li className="w-full">
+                    <Link to="/Addrams">
+                      <Button className="!text-[rgba(0,0,0,0.8)] !text-[13px] font-[600] !pl-8 w-full flex gap-3 !justify-start !capitalize">
+                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]"></span>
+                        Add Product Ram
+                      </Button>
+                    </Link>
+                  </li>
+                  <li className="w-full">
+                    <Link to="/Addweight">
+                      <Button className="!text-[rgba(0,0,0,0.8)] !text-[13px] font-[600] !pl-8 w-full flex gap-3 !justify-start !capitalize">
+                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]"></span>
+                        Add Product Weight
+                      </Button>
+                    </Link>
+                  </li>
+                  <li className="w-full">
+                    <Link to="/Addsize">
+                      <Button className="!text-[rgba(0,0,0,0.8)] !text-[13px] font-[600] !pl-8 w-full flex gap-3 !justify-start !capitalize">
+                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]"></span>
+                        Add Product Size
+                      </Button>
+                    </Link>
+                  </li>
                 </ul>
               </Collapse>
             </li>

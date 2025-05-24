@@ -58,7 +58,7 @@ export default function FileUploadBox(props) {
       {upload === true ? (
         <>
           <CircularProgress color="inherit" />
-          <h4 className="text-center">Uploading...</h4>
+          <h4 className="text-[12px]">Uploading...</h4>
         </>
       ) : (
         <>

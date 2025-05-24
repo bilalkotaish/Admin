@@ -25,6 +25,9 @@ import { useEffect } from "react";
 import { fetchData } from "./utils/api";
 import Profile from "./Pages/Profile";
 import ProductDetails from "./Pages/Products/productdetails";
+import AddRams from "./Pages/Products/addRams";
+import AddSize from "./Pages/Products/addSize";
+import AddWeight from "./Pages/Products/addWeight";
 const Mycontext = createContext();
 function App() {
   const [isSidebar, setisSidebar] = useState(true);
@@ -366,6 +369,81 @@ function App() {
                 }`}
               >
                 <ProductDetails />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        path: "/addRams",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <AddRams />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        path: "/addsize",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <AddSize />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        path: "/addweight",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <AddWeight />
               </div>
             </div>
           </section>

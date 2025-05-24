@@ -142,7 +142,11 @@ export default function EditCategory() {
                   </div>
                 ))}
 
-              <FileUploadBox multiple={true} setpreviewfun={setpreviewfun} />
+              <FileUploadBox
+                multiple={true}
+                url="/api/category/upload"
+                setpreviewfun={setpreviewfun}
+              />
             </div>
           </div>
 

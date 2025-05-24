@@ -1,26 +1,105 @@
 import { Button, Pagination, Tooltip } from "@mui/material";
 import { AiTwotoneEdit } from "react-icons/ai";
-import { MdOutlineDeleteOutline } from "react-icons/md";
+import { MdDeleteOutline, MdOutlineDeleteOutline } from "react-icons/md";
 import Checkbox from "@mui/material/Checkbox";
 import { IoEyeOutline } from "react-icons/io5";
 import { BiExport } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { Mycontext } from "../../App";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
+import { deleteData, deleteMultipleData, fetchData } from "../../utils/api";
 export default function BannerSliderTable() {
   const label = { inputProps: { "aria-label": "Checkbox demo" } };
   const context = useContext(Mycontext);
+  const [Sorting, setSorting] = useState([]);
 
-  const banners = [
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-    {
-      image:
-        "https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg",
-    },
-  ];
+  const [banners, setBanners] = useState([]);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  useEffect(() => {
+    getData();
+  }, [context.isOpenPanel]);
+
+  const getData = () => {
+    fetchData("/api/homebanner/get").then((res) => {
+      let BannerArr = [];
+
+      console.log("Fetched Home Banner data:", res);
+      if (res.success && Array.isArray(res.data)) {
+        for (let i = 0; i < res.data.length; i++) {
+          BannerArr[i] = res.data[i];
+          BannerArr[i].checked = false;
+        }
+        console.log("Fetched Banner data:", BannerArr);
+
+        setBanners(BannerArr);
+      } else {
+        setBanners([]); // fallback
+      }
+    });
+  };
+
+  const handleSelectAll = (event) => {
+    const isChecked = event.target.checked;
+    const updatedBanners = banners.map((item) => ({
+      ...item,
+      checked: isChecked,
+    }));
+    setBanners(updatedBanners);
+    console.log("Selected banners:", updatedBanners);
+    if (isChecked) {
+      const ids = updatedBanners.map((item) => item._id).sort((a, b) => a - b);
+      console.log("Selected banner IDs:", ids);
+      setSorting(ids);
+    } else {
+      setSorting([]);
+    }
+  };
+  const handlecheckboxChange = (e, id) => {
+    const updatedBanners = banners.map((item) =>
+      item._id === id ? { ...item, checked: e.target.checked } : item
+    );
+    setBanners(updatedBanners);
+    console.log("Selected banners:", updatedBanners);
+    if (e.target.checked) {
+      const ids = updatedBanners
+        .filter((item) => item.checked)
+        .map((item) => item._id)
+        .sort((a, b) => a - b);
+      console.log("Selected banner IDs:", ids);
+      setSorting(ids);
+    } else {
+      setSorting([]);
+    }
+  };
+
+  const handleDelete = (id) => {
+    deleteData(`/api/homebanner/${id}`).then((res) => {
+      context.Alertbox("success", res.message);
+
+      getData();
+    });
+  };
+
+  const handleDeleteAll = async () => {
+    if (Sorting.length > 0) {
+      try {
+        const res = await deleteMultipleData(`/api/homebanner/delete`, {
+          ids: Sorting, // send all selected IDs at once
+        });
+
+        if (res.success) {
+          context.Alertbox("success", res.message);
+          getData(); // refresh list
+        } else {
+          context.Alertbox("error", res.message || "Deletion failed.");
+        }
+      } catch (error) {
+        context.Alertbox("error", "An error occurred while deleting.");
+      }
+    }
+  };
 
   return (
     <div className="card my-6 shadow-lg sm:rounded-xl bg-white border border-gray-100">
@@ -40,13 +119,30 @@ export default function BannerSliderTable() {
         >
           Add Banner Image <FaPlus className="text-[15px] font-semibold" />
         </Button>
+        {Sorting.length > 0 && (
+          <Button
+            onClick={handleDeleteAll}
+            className="flex items-center gap-2 !bg-red-500 hover:!bg-red-600 !text-white font-semibold py-2 px-4 rounded-md"
+          >
+            Delete <MdDeleteOutline className="text-sm" />
+          </Button>
+        )}
       </div>
       <div className="overflow-x-auto rounded-lg">
         <table className="w-full text-sm text-left text-gray-600">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 w-12">
-                <Checkbox size="small" {...label} />
+                <Checkbox
+                  size="small"
+                  {...label}
+                  onChange={handleSelectAll}
+                  checked={
+                    banners.length !== 0
+                      ? banners.every((item) => item.checked)
+                      : false
+                  }
+                />
               </th>
               <th scope="col" className="px-6 py-3">
                 Image
@@ -57,55 +153,61 @@ export default function BannerSliderTable() {
             </tr>
           </thead>
           <tbody>
-            {banners.map((banner, idx) => (
-              <tr
-                key={idx}
-                className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
-              >
-                <td className="px-6 py-4">
-                  <Checkbox {...label} size="small" />
-                </td>
-
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <img
-                      src={banner.image}
-                      alt="Banner"
-                      className="w-[300px] h-[100px] object-cover rounded-md shadow-sm hover:scale-105 border border-gray-200"
+            {banners.length > 0 &&
+              banners.map((item, idx) => (
+                <tr
+                  key={idx}
+                  className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <td className="px-6 py-4">
+                    <Checkbox
+                      {...label}
+                      size="small"
+                      checked={item.checked === true}
+                      onChange={(e) => handlecheckboxChange(e, item._id)}
                     />
-                  </div>
-                </td>
+                  </td>
 
-                <td className="px-6 py-4 pr-44">
-                  <div className="flex justify-end items-center space-x-2">
-                    <Tooltip title="View" placement="top" arrow>
-                      <Button
-                        className="!min-w-[32px] !h-8 !p-0 !bg-blue-50 hover:!bg-blue-100 !rounded-md"
-                        variant="text"
-                      >
-                        <IoEyeOutline className="text-blue-600 text-lg" />
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Edit" placement="top" arrow>
-                      <Button
-                        className="!min-w-[32px] !h-8 !p-0 !bg-green-50 hover:!bg-green-100 !rounded-md"
-                        variant="text"
-                      >
-                        <AiTwotoneEdit className="text-green-600 text-lg" />
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Delete" placement="top" arrow>
-                      <Button
-                        className="!min-w-[32px] !h-8 !p-0 !bg-red-50 hover:!bg-red-100 !rounded-md"
-                        variant="text"
-                      >
-                        <MdOutlineDeleteOutline className="text-red-600 text-lg" />
-                      </Button>
-                    </Tooltip>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      {item.image && item.image.length > 0 ? (
+                        item.image.map((img, i) => (
+                          <img
+                            key={i}
+                            src={img.url}
+                            alt={`Banner ${i}`}
+                            className="w-[300px] h-[100px] object-cover rounded-md shadow-sm hover:scale-105 border border-gray-200"
+                          />
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">No image</span>
+                      )}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4 pr-44">
+                    <div className="flex justify-end items-center space-x-2">
+                      <Tooltip title="Edit" placement="top" arrow>
+                        <Button
+                          className="!min-w-[32px] !h-8 !p-0 !bg-green-50 hover:!bg-green-100 !rounded-md"
+                          variant="text"
+                        >
+                          <AiTwotoneEdit className="text-green-600 text-lg" />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Delete" placement="top" arrow>
+                        <Button
+                          className="!min-w-[32px] !h-8 !p-0 !bg-red-50 hover:!bg-red-100 !rounded-md"
+                          variant="text"
+                          onClick={() => handleDelete(item._id)}
+                        >
+                          <MdOutlineDeleteOutline className="text-red-600 text-lg" />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

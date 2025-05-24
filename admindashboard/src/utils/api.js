@@ -106,18 +106,17 @@ export const deleteData = async (url, params = {}) => {
   }
 };
 
-export const deleteMultipleData = async (url, data = {}) => {
+export const deleteMultiple = async (url, body = {}) => {
   try {
-    const res = await axios.delete(apiurl + url, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accesstoken")}`,
-        "Content-Type": "application/json",
-      },
-      data: data, // ✅ Send as DELETE body payload, not query param
+    const response = await axios.delete(url, {
+      data: body,
     });
-    return res.data;
+    return response.data;
   } catch (error) {
-    console.log("Delete error:", error);
-    return error.response?.data || error;
+    console.error("Full error:", error); // 👈 Add this
+    return {
+      error: true,
+      message: error?.response?.data?.message || "Something went wrong",
+    };
   }
 };

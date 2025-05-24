@@ -21,6 +21,7 @@ import { fetchData, deleteData } from "../../utils/api";
 import { MdDeleteOutline } from "react-icons/md";
 import { deleteMultipleData } from "../../utils/api";
 import CircularProgress from "@mui/material/CircularProgress";
+import Rating from "@mui/material/Rating";
 
 export default function Product() {
   const [categoryfilter, setcategoryfilter] = useState("");
@@ -351,7 +352,8 @@ export default function Product() {
                 <th className="px-4 py-3">Subcategory</th>
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Sales</th>
+                <th className="px-1 py-2">Sales</th>
+                <th className="px-1 py-2">Rating</th>
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -417,11 +419,20 @@ export default function Product() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+
+                    <td className="px-1 py-1">
                       <span className="font-semibold text-sm">
                         {product.sale} Sales
                       </span>
                       <ProgressBar type="warning" value={product.sale} />
+                    </td>
+                    <td className="px-1 py-1">
+                      <Rating
+                        name="half-rating-read"
+                        defaultValue={product.rating}
+                        precision={0.5}
+                        readOnly
+                      />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">

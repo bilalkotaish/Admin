@@ -71,10 +71,7 @@ export default function CategoryList() {
         <table className="w-full text-sm text-left text-gray-600">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th className="px-6 py-3 w-12">
-                <Checkbox size="small" {...label} />
-              </th>
-              <th className="px-6 py-3">Image</th>
+              <th className="px-16 py-3">Image</th>
               <th className="px-6 py-3">Category Name</th>
               <th className="px-6 py-3 text-right pr-28">Actions</th>
             </tr>
@@ -85,10 +82,7 @@ export default function CategoryList() {
                 key={index}
                 className="bg-white border-b border-gray-100 hover:bg-gray-50 transition duration-200"
               >
-                <td className="px-6 py-4">
-                  <Checkbox size="small" {...label} />
-                </td>
-                <td className="px-6 py-4">
+                <td className="px-16 py-4">
                   <div className="flex items-center">
                     <LazyLoadImage
                       alt={item.name || "category image"}

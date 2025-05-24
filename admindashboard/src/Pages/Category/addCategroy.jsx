@@ -117,7 +117,7 @@ export default function AddCategory() {
 
                     <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden h-[150px] w-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 flex items-center justify-center">
                       <LazyLoadImage
-                        alt={image}
+                        alt={`Category Image ${index + 1}`}
                         effect="blur"
                         className="w-full h-full object-cover"
                         src={image.url}

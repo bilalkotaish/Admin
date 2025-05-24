@@ -72,7 +72,7 @@ export default function Header() {
   return (
     <>
       <header
-        className={`w-full pr-7 h-auto bg-white shadow-md py-2 transition-all duration-300 flex items-center justify-between ${
+        className={`w-full pr-7 h-auto bg-white shadow-md py-2   transition-all duration-300 flex items-center justify-between ${
           context.isSidebar === true ? "pl-64" : "pl-4"
         }`}
       >

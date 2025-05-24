@@ -8,25 +8,32 @@ import Rating from "@mui/material/Rating";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import FileUploadBox from "../../Components/UploadBox";
 import { Mycontext } from "../../App";
-import { deleteData, postData } from "../../utils/api";
+import { deleteData, fetchData, postData } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
+import Switch from "@mui/material/Switch";
+const label = { inputProps: { "aria-label": "Switch demo" } };
 
 export default function Addproduct() {
   const [Cat, setCat] = useState("");
   const [subCat, setsubCat] = useState("");
   const [thirdsubCat, setthirdsubCat] = useState("");
   const [preview, setpreview] = useState([]);
+  const [bannerpreview, setbannerpreview] = useState([]);
+
   const [isLoading, setisLoading] = useState(false);
 
   const [subfet, setsubfet] = useState("");
   const [pram, setpram] = useState([]);
   const [pweight, setpweight] = useState([]);
   const [psize, setpsize] = useState([]);
-
+  const [pramData, setpramData] = useState([]);
+  const [pweightData, setpweightData] = useState([]);
+  const [psizeData, setpsizeData] = useState([]);
+  const [checkswitch, setcheckswitch] = useState(false);
   const context = useContext(Mycontext);
   const history = useNavigate();
   const RamhandleChange = (event) => {
@@ -61,6 +68,10 @@ export default function Addproduct() {
     formfields.category = event.target.value;
   };
 
+  const handlebanner = (e) => {
+    setcheckswitch(e.target.checked);
+    formfields.IsDisplayedHome = e.target.checked;
+  };
   const handleChangesub = (event) => {
     setsubCat(event.target.value);
     formfields.subcatId = event.target.value;
@@ -92,6 +103,9 @@ export default function Addproduct() {
     productRam: [],
     size: [],
     productweight: [],
+    bannerImage: [],
+    bannerTitle: "",
+    IsDisplayedHome: false,
   });
   const onChangeInput = (e) => {
     console.log(e.target.name);
@@ -122,14 +136,33 @@ export default function Addproduct() {
       images: [...formfields.images, ...previewArr],
     });
   };
+  const setpreviewbannerfun = (previewArr) => {
+    setbannerpreview([...bannerpreview, ...previewArr]); // Changed from preview to bannerpreview
+    setformfields({
+      ...formfields,
+      bannerImage: [...formfields.bannerImage, ...previewArr], // Fixed field name
+    });
+  };
   const removeImage = (image, index) => {
-    deleteData(`/api/category/deleteimage`, { fileId: image.fileId }).then(
+    deleteData(`/api/product/deleteimage`, { fileId: image.fileId }).then(
       (res) => {
         console.log("Deleted:", res);
         setpreview(preview.filter((item, i) => i !== index));
         setformfields({
           ...formfields,
           images: formfields.images.filter((item, i) => i !== index),
+        });
+      }
+    );
+  };
+  const removebannerImage = (image, index) => {
+    deleteData(`/api/product/deletebannerimage`, { fileId: image.fileId }).then(
+      (res) => {
+        console.log("Deleted:", res);
+        setbannerpreview(bannerpreview.filter((item, i) => i !== index));
+        setformfields({
+          ...formfields,
+          bannerImage: formfields.bannerImage.filter((item, i) => i !== index),
         });
       }
     );
@@ -154,10 +187,15 @@ export default function Addproduct() {
       context.Alertbox("error", "Please Provide Sub Category Id");
       return false;
     }
-    if (formfields.thirdsubcatId === "") {
-      context.Alertbox("error", "Please Provide Third Sub Category Id");
+    if (formfields.bannerImage.length === 0) {
+      context.Alertbox("error", "Please Provide Banner Image");
       return false;
     }
+
+    // if (formfields.thirdsubcatId === "") {
+    //   context.Alertbox("error", "Please Provide Third Sub Category Id");
+    //   return false;
+    // }
     if (formfields.price === "") {
       context.Alertbox("error", "Please Provide Product Price");
       return false;
@@ -190,24 +228,25 @@ export default function Addproduct() {
       context.Alertbox("error", "Please Provide Product Stock");
       return false;
     }
-    if (formfields.productRam.length === 0) {
-      context.Alertbox("error", "Please Provide Product Ram");
-      return false;
-    }
-    if (formfields.size.length === 0) {
-      context.Alertbox("error", "Please Provide Product Size");
-      return false;
-    }
-    if (formfields.productweight.length === 0) {
-      context.Alertbox("error", "Please Provide Product Weight");
-      return false;
-    }
+    // if (formfields.productRam.length === 0) {
+    //   context.Alertbox("error", "Please Provide Product Ram");
+    //   return false;
+    // }
+    // if (formfields.size.length === 0) {
+    //   context.Alertbox("error", "Please Provide Product Size");
+    //   return false;
+    // }
+    // if (formfields.productweight.length === 0) {
+    //   context.Alertbox("error", "Please Provide Product Weight");
+    //   return false;
+    // }
 
     if (formfields.isFeatured === "") {
       context.Alertbox("error", "Please Provide Product Featured");
       return false;
     }
     postData("/api/product/create", formfields).then((res) => {
+      console.log(res);
       if (res.error !== true) {
         setisLoading(false);
         context.Alertbox("success", res.message);
@@ -220,6 +259,39 @@ export default function Addproduct() {
         context.Alertbox("error", res.message);
       }
     });
+  };
+
+  useEffect(() => {
+    fetchData("/api/product/getRams").then((res) => {
+      console.log(res);
+      if (res.error === false) {
+        setpramData(res.data);
+      }
+    });
+    fetchData("/api/product/getweights").then((res) => {
+      console.log(res);
+      if (res.error === false) {
+        setpweightData(res.data);
+      }
+    });
+    fetchData("/api/product/getSizes").then((res) => {
+      console.log(res);
+      if (res.error === false) {
+        setpsizeData(res.data);
+      }
+    });
+  }, []);
+  const selectram = (ram) => {
+    formfields.productRam = ram._id;
+    formfields.ramname = ram.ram;
+  };
+  const selectweight = (weight) => {
+    formfields.productweight = weight._id;
+    formfields.weightname = weight.weight;
+  };
+  const selectsize = (size) => {
+    formfields.size = size._id;
+    formfields.sizename = size.size;
   };
 
   return (
@@ -416,60 +488,75 @@ export default function Addproduct() {
               </div>
               <div className="col">
                 <h3 className="text-[16px] font-[600] mb-2">Product Rams</h3>
-                <Select
-                  multiple
-                  labelId="demo-simple-select-label"
-                  id="Productram"
-                  value={pram}
-                  className="w-full bg-white rounded-md h-[45px]"
-                  label="Category"
-                  onChange={RamhandleChange}
-                >
-                  <MenuItem value={null}>None</MenuItem>
-
-                  <MenuItem value={"4gb"}>4Gb</MenuItem>
-                  <MenuItem value={"8gb"}>8Gb</MenuItem>
-                  <MenuItem value={"12gb"}>12Gb</MenuItem>
-                </Select>
+                {pramData.length !== 0 && (
+                  <Select
+                    multiple
+                    labelId="demo-simple-select-label"
+                    id="Productram"
+                    value={pram}
+                    className="w-full bg-white rounded-md h-[45px]"
+                    onChange={RamhandleChange}
+                  >
+                    {pramData.map((ram, index) => (
+                      <MenuItem
+                        key={index}
+                        value={ram.ram}
+                        onClick={() => selectram(ram)}
+                      >
+                        {ram.ram}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
               </div>
 
               <div className="col">
                 <h3 className="text-[16px] font-[600] mb-2">Product Weight</h3>
-                <Select
-                  multiple
-                  labelId="demo-simple-select-label"
-                  id="Productweight"
-                  value={pweight}
-                  className="w-full bg-white rounded-md h-[45px]"
-                  label="Category"
-                  onChange={weighthandleChange}
-                >
-                  <MenuItem value={""}>None</MenuItem>
-
-                  <MenuItem value={10}>1kg</MenuItem>
-                  <MenuItem value={20}>2kg</MenuItem>
-                  <MenuItem value={30}>3kg</MenuItem>
-                </Select>
+                {pweightData.length !== 0 && (
+                  <Select
+                    multiple
+                    labelId="demo-simple-select-label"
+                    id="Productweight"
+                    value={pweight}
+                    className="w-full bg-white rounded-md h-[45px]"
+                    label="Category"
+                    onChange={weighthandleChange}
+                  >
+                    {pweightData.map((weight, index) => (
+                      <MenuItem
+                        key={index}
+                        value={weight.weight}
+                        onClick={() => selectweight(weight)}
+                      >
+                        {weight.weight}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
               </div>
               <div className="col">
                 <h3 className="text-[16px] font-[600] mb-2">Product Size</h3>
-                <Select
-                  multiple
-                  labelId="demo-simple-select-label"
-                  id="Productweight"
-                  value={psize}
-                  className="w-full bg-white rounded-md h-[45px]"
-                  label="Category"
-                  onChange={sizehandleChange}
-                >
-                  <MenuItem value={""}>None</MenuItem>
-
-                  <MenuItem value={"s"}>S</MenuItem>
-                  <MenuItem value={"m"}>M</MenuItem>
-                  <MenuItem value={"l"}>L</MenuItem>
-                  <MenuItem value={"xl"}>XL</MenuItem>
-                  <MenuItem value={"xxl"}>XXL</MenuItem>
-                </Select>
+                {psizeData.length !== 0 && (
+                  <Select
+                    multiple
+                    labelId="demo-simple-select-label"
+                    id="Productsize"
+                    value={psize}
+                    className="w-full bg-white rounded-md h-[45px]"
+                    label="Category"
+                    onChange={sizehandleChange}
+                  >
+                    {psizeData.map((size, index) => (
+                      <MenuItem
+                        key={index}
+                        value={size.size}
+                        onClick={() => selectsize(size)}
+                      >
+                        {size.size}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
               </div>
               <div className="col mt-1">
                 <h3 className="text-[16px] font-[600] mb-4">Product Rating</h3>
@@ -513,7 +600,63 @@ export default function Addproduct() {
                 <FileUploadBox
                   url="/api/product/uploadimage"
                   multiple={true}
+                  name="images"
                   setpreviewfun={setpreviewfun}
+                />
+              </div>
+            </div>
+
+            <div className="col w-full p-5 px-0">
+              {" "}
+              <div className="flex items-center gap-4">
+                <h3 className="text-[22px] font-[600] mb-4"> Banner Images</h3>
+
+                <Switch
+                  onChange={() => handlebanner()}
+                  checked={checkswitch}
+                  {...label}
+                />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pb-6">
+                {bannerpreview.length !== 0 &&
+                  bannerpreview.map((image, index) => (
+                    <div className="relative group" key={index}>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          removebannerImage(image, index);
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center z-10 shadow-md"
+                      >
+                        <IoCloseSharp className="text-sm" />
+                      </button>
+
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden h-[150px] w-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 flex items-center justify-center">
+                        <LazyLoadImage
+                          alt={image}
+                          effect="blur"
+                          className="w-full h-full object-cover"
+                          src={image.url}
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                <FileUploadBox
+                  url="/api/product/uploadbannerimage"
+                  multiple={true}
+                  name="bannerImage"
+                  setpreviewfun={setpreviewbannerfun}
+                />
+              </div>{" "}
+              <div className="col">
+                <h3 className="text-[16px] font-[600] mb-2">Banner Title</h3>
+                <input
+                  type="text"
+                  name="bannerTitle"
+                  value={formfields.bannerTitle}
+                  onChange={onChangeInput}
+                  className=" no-spinner w-full h-[45px] rounded-md p-5 border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.5)]"
                 />
               </div>
             </div>
