@@ -1,4 +1,4 @@
-import { Button, Pagination, Tooltip } from "@mui/material";
+import { Button, MenuItem, Pagination, Select, Tooltip } from "@mui/material";
 import { AiTwotoneEdit } from "react-icons/ai";
 import { MdDeleteOutline, MdOutlineDeleteOutline } from "react-icons/md";
 import Checkbox from "@mui/material/Checkbox";
@@ -8,48 +8,60 @@ import { FaPlus } from "react-icons/fa6";
 import { Mycontext } from "../../App";
 import { useContext, useEffect, useState } from "react";
 import { deleteData, deleteMultiple, fetchData } from "../../utils/api";
-export default function BannerSliderTable() {
+export default function BlogTable() {
   const label = { inputProps: { "aria-label": "Checkbox demo" } };
   const context = useContext(Mycontext);
   const [Sorting, setSorting] = useState([]);
-
-  const [banners, setBanners] = useState([]);
+  const [Blog, setBlog] = useState([]);
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(4);
+  const [totalPages, setTotalPages] = useState(1);
 
+  // Pagination handler
+  const handleChangePage = (event, value) => {
+    setPage(value);
+  };
+
+  // Slice the blog data according to current page
+  const paginatedBlog = Blog.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  const handleLimitChange = (event) => {
+    const value = parseInt(event.target.value); // Convert from string to number
+    setRowsPerPage(value);
+    setPage(1); // Reset to first page whenever the per-page value changes
+  };
   useEffect(() => {
     getData();
-  }, [context.isOpenPanel]);
+  }, [context.isOpenPanel, page, rowsPerPage]);
 
   const getData = () => {
-    fetchData("/api/homebanner/get").then((res) => {
-      let BannerArr = [];
-
-      console.log("Fetched Home Banner data:", res);
-      if (res.success && Array.isArray(res.banners)) {
-        for (let i = 0; i < res.banners.length; i++) {
-          BannerArr[i] = res.banners[i];
-          BannerArr[i].checked = false;
+    fetchData(`/api/blog/get?page=${page}&perpage=${rowsPerPage}`).then(
+      (res) => {
+        if (res.success) {
+          const blogWithCheck = res.data.map((item) => ({
+            ...item,
+            checked: false,
+          }));
+          setBlog(blogWithCheck);
+          setTotalPages(res.pages);
         }
-        console.log("Fetched Banner data:", BannerArr);
-
-        setBanners(BannerArr);
-      } else {
-        setBanners([]); // fallback
       }
-    });
+    );
   };
 
   const handleSelectAll = (event) => {
     const isChecked = event.target.checked;
-    const updatedBanners = banners.map((item) => ({
+    const updatedBlog = Blog.map((item) => ({
       ...item,
       checked: isChecked,
     }));
-    setBanners(updatedBanners);
-    console.log("Selected banners:", updatedBanners);
+    setBlog(updatedBlog);
+    console.log("Selected banners:", updatedBlog);
     if (isChecked) {
-      const ids = updatedBanners.map((item) => item._id).sort((a, b) => a - b);
+      const ids = updatedBlog.map((item) => item._id).sort((a, b) => a - b);
       console.log("Selected banner IDs:", ids);
       setSorting(ids);
     } else {
@@ -57,13 +69,13 @@ export default function BannerSliderTable() {
     }
   };
   const handlecheckboxChange = (e, id) => {
-    const updatedBanners = banners.map((item) =>
+    const updatedBlog = Blog.map((item) =>
       item._id === id ? { ...item, checked: e.target.checked } : item
     );
-    setBanners(updatedBanners);
-    console.log("Selected banners:", updatedBanners);
+    setBanners(updatedBlog);
+    console.log("Selected banners:", updatedBlog);
     if (e.target.checked) {
-      const ids = updatedBanners
+      const ids = updatedBlog
         .filter((item) => item.checked)
         .map((item) => item._id)
         .sort((a, b) => a - b);
@@ -75,7 +87,7 @@ export default function BannerSliderTable() {
   };
 
   const handleDelete = (id) => {
-    deleteData(`/api/homebanner/${id}`).then((res) => {
+    deleteData(`/api/blog/${id}`).then((res) => {
       context.Alertbox("success", res.message);
 
       getData();
@@ -85,7 +97,7 @@ export default function BannerSliderTable() {
   const handleDeleteAll = async () => {
     if (Sorting.length > 0) {
       try {
-        const res = await deleteMultiple(`/api/homebanner/delete`, {
+        const res = await deleteMultiple(`/api/blog/delete`, {
           ids: Sorting,
         });
 
@@ -104,20 +116,16 @@ export default function BannerSliderTable() {
   return (
     <div className="card my-6 shadow-lg sm:rounded-xl bg-white border border-gray-100">
       <h2 className="px-6 py-4 text-xl font-semibold text-gray-800 ">
-        Banner Sliders
+        Blog List
       </h2>
       <div className="flex items-center justify-end gap-4 mt-4 mb-5 pr-4 px-2 py-0 mt-3">
-        <Button className="flex items-center justify-center gap-2 !bg-green-500 hover:bg-green-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap">
-          Export <BiExport className="text-[20px] font-semibold" />
-        </Button>
-
         <Button
           onClick={() =>
-            context.setisOpenPanel({ open: true, model: "AddBannerslider" })
+            context.setisOpenPanel({ open: true, model: "Add Blog" })
           }
           className="flex items-center justify-center gap-2 !bg-blue-500 hover:bg-blue-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap"
         >
-          Add Banner Image <FaPlus className="text-[15px] font-semibold" />
+          Add Blog <FaPlus className="text-[15px] font-semibold" />
         </Button>
         {Sorting.length > 0 && (
           <Button
@@ -138,8 +146,8 @@ export default function BannerSliderTable() {
                   {...label}
                   onChange={handleSelectAll}
                   checked={
-                    banners.length !== 0
-                      ? banners.every((item) => item.checked)
+                    Blog.length !== 0
+                      ? Blog.every((item) => item.checked)
                       : false
                   }
                 />
@@ -147,14 +155,20 @@ export default function BannerSliderTable() {
               <th scope="col" className="px-6 py-3">
                 Image
               </th>
+              <th scope="col" className="px-6 py-3">
+                Title
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Description
+              </th>
               <th scope="col" className="px-6 py-3 pr-56 text-right">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody>
-            {banners.length > 0 &&
-              banners.map((item, idx) => (
+            {paginatedBlog.length > 0 &&
+              paginatedBlog.map((item, idx) => (
                 <tr
                   key={idx}
                   className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
@@ -170,7 +184,7 @@ export default function BannerSliderTable() {
 
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
-                      {item.image !== 0 &&
+                      {Array.isArray(item.image) && item.image.length > 0 ? (
                         item.image.map((image, index) => (
                           <img
                             key={index}
@@ -178,13 +192,46 @@ export default function BannerSliderTable() {
                             alt={`Banner ${index}`}
                             className="w-[300px] h-[100px] object-cover rounded-md shadow-sm hover:scale-105 border border-gray-200"
                           />
-                        ))}
+                        ))
+                      ) : (
+                        <span className="text-gray-400">
+                          No image available
+                        </span>
+                      )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4">{item.title}</td>
+                  <td className="px-6 py-4">
+                    <p>
+                      {item.description
+                        .replace(/<[^>]+>/g, " ")
+                        .replace(/&nbsp;/g, " ")
+                        .replace(/\s+/g, " ")
+                        .trim()
+                        .substring(0, 200)
+                        .replace(/\s+\S*$/, "") +
+                        (item.description.length > 200 ? "..." : "")}
+                    </p>
                   </td>
 
                   <td className="px-6 py-4 pr-44">
                     <div className="flex justify-end items-center space-x-2">
                       <Tooltip title="Delete" placement="top" arrow>
+                        <Button
+                          className="!min-w-[32px] !h-8 !p-0 !bg-green-50 hover:!bg-green-100 !rounded-md"
+                          variant="text"
+                        >
+                          <AiTwotoneEdit
+                            onClick={() =>
+                              context.setisOpenPanel({
+                                open: true,
+                                model: "Edit Blog",
+                                id: item._id,
+                              })
+                            }
+                            className="text-green-600 text-lg"
+                          />
+                        </Button>
                         <Button
                           className="!min-w-[32px] !h-8 !p-0 !bg-red-50 hover:!bg-red-100 !rounded-md"
                           variant="text"
@@ -201,13 +248,33 @@ export default function BannerSliderTable() {
         </table>
       </div>
 
-      <div className="flex !justify-end items-center px-6 py-4 border-t border-gray-200">
+      <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-200 gap-4">
+        <div className="w-full sm:w-auto">
+          <label className="font-semibold text-[14px] mb-1 block">
+            Items Per Page
+          </label>
+          <Select
+            className="w-full sm:w-[100px]"
+            size="small"
+            value={rowsPerPage}
+            onChange={handleLimitChange}
+          >
+            <MenuItem value={1}>1</MenuItem>
+            <MenuItem value={5}>5</MenuItem>
+            <MenuItem value={10}>10</MenuItem>
+            <MenuItem value={20}>20</MenuItem>
+            <MenuItem value={50}>50</MenuItem>
+          </Select>
+        </div>
+
         <Pagination
-          count={5}
+          count={totalPages}
+          page={page}
+          onChange={handleChangePage}
           color="primary"
           shape="rounded"
           size="medium"
-          className="[&_.MuiPaginationItem-root]:!rounded-md "
+          className="[&_.MuiPaginationItem-root]:!rounded-md"
         />
       </div>
     </div>

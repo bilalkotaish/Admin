@@ -28,6 +28,8 @@ import ProductDetails from "./Pages/Products/productdetails";
 import AddRams from "./Pages/Products/addRams";
 import AddSize from "./Pages/Products/addSize";
 import AddWeight from "./Pages/Products/addWeight";
+import BannerV1Table from "./Pages/bannerv1";
+import BlogTable from "./Pages/Blog";
 const Mycontext = createContext();
 function App() {
   const [isSidebar, setisSidebar] = useState(true);
@@ -444,6 +446,56 @@ function App() {
                 }`}
               >
                 <AddWeight />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        path: "/homebannerv1/list",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <BannerV1Table />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        path: "/bloglist",
+        element: (
+          <section className="main">
+            <Header />
+            <div className="contentmain flex transition-all duration-300">
+              <div
+                className={`sidebarwrapper transition-all duration-300 overflow-hidden ${
+                  isSidebar ? "w-[18%] px-4 py-2" : "w-0 px-0 py-0"
+                }`}
+              >
+                <Sidebar />
+              </div>
+
+              <div
+                className={`contentright px-5 py-4 transition-all duration-300 ${
+                  isSidebar === false ? "w-full" : "w-[82%]"
+                }`}
+              >
+                <BlogTable />
               </div>
             </div>
           </section>

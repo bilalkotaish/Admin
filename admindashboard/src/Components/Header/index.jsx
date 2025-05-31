@@ -30,6 +30,10 @@ import Slide from "@mui/material/Slide";
 import Typography from "@mui/material/Typography";
 import { IoMdClose } from "react-icons/io";
 import EditProduct from "../../Pages/Products/editProduct";
+import Addbannerv1 from "../../Pages/bannerv1/addbannerv1";
+import Editbannerv1 from "../../Pages/bannerv1/editbannerv1";
+import AddBlog from "../../Pages/Blog/addblog";
+import EditBlog from "../../Pages/Blog/editBlog";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -211,6 +215,10 @@ export default function Header() {
         {context.isOpenPanel.model === "Add Address" && <Addadress />}
         {context.isOpenPanel.model === "Edit Category" && <EditCategory />}
         {context.isOpenPanel.model === "Edit Product" && <EditProduct />}
+        {context.isOpenPanel.model === "Add Banner V1" && <Addbannerv1 />}
+        {context.isOpenPanel.model === "Edit Banner V1" && <Editbannerv1 />}
+        {context.isOpenPanel.model === "Add Blog" && <AddBlog />}
+        {context.isOpenPanel.model === "Edit Blog" && <EditBlog />}
       </Dialog>
     </>
   );

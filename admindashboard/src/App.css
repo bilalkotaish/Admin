@@ -96,3 +96,9 @@ a.active button {
   height: 400px !important;
   overflow: hidden !important;
 }
+
+.rsw-editor {
+  width: 100% !important;
+  min-height: 250px !important;
+  background: white !important;
+}

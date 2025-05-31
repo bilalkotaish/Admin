@@ -8,7 +8,7 @@ import { FaPlus } from "react-icons/fa6";
 import { Mycontext } from "../../App";
 import { useContext, useEffect, useState } from "react";
 import { deleteData, deleteMultiple, fetchData } from "../../utils/api";
-export default function BannerSliderTable() {
+export default function BannerV1Table() {
   const label = { inputProps: { "aria-label": "Checkbox demo" } };
   const context = useContext(Mycontext);
   const [Sorting, setSorting] = useState([]);
@@ -22,16 +22,16 @@ export default function BannerSliderTable() {
   }, [context.isOpenPanel]);
 
   const getData = () => {
-    fetchData("/api/homebanner/get").then((res) => {
+    fetchData("/api/bannerv1/get").then((res) => {
       let BannerArr = [];
 
-      console.log("Fetched Home Banner data:", res);
-      if (res.success && Array.isArray(res.banners)) {
-        for (let i = 0; i < res.banners.length; i++) {
-          BannerArr[i] = res.banners[i];
+      console.log("Fetched Banner V1 data:", res);
+      if (res.success && Array.isArray(res.data)) {
+        for (let i = 0; i < res.data.length; i++) {
+          BannerArr[i] = res.data[i];
           BannerArr[i].checked = false;
         }
-        console.log("Fetched Banner data:", BannerArr);
+        console.log("Fetched Banner V1 data:", BannerArr);
 
         setBanners(BannerArr);
       } else {
@@ -75,7 +75,7 @@ export default function BannerSliderTable() {
   };
 
   const handleDelete = (id) => {
-    deleteData(`/api/homebanner/${id}`).then((res) => {
+    deleteData(`/api/bannerv1/${id}`).then((res) => {
       context.Alertbox("success", res.message);
 
       getData();
@@ -85,7 +85,7 @@ export default function BannerSliderTable() {
   const handleDeleteAll = async () => {
     if (Sorting.length > 0) {
       try {
-        const res = await deleteMultiple(`/api/homebanner/delete`, {
+        const res = await deleteMultiple(`/api/bannerv1/delete`, {
           ids: Sorting,
         });
 
@@ -104,20 +104,16 @@ export default function BannerSliderTable() {
   return (
     <div className="card my-6 shadow-lg sm:rounded-xl bg-white border border-gray-100">
       <h2 className="px-6 py-4 text-xl font-semibold text-gray-800 ">
-        Banner Sliders
+        Banner V1 List
       </h2>
       <div className="flex items-center justify-end gap-4 mt-4 mb-5 pr-4 px-2 py-0 mt-3">
-        <Button className="flex items-center justify-center gap-2 !bg-green-500 hover:bg-green-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap">
-          Export <BiExport className="text-[20px] font-semibold" />
-        </Button>
-
         <Button
           onClick={() =>
-            context.setisOpenPanel({ open: true, model: "AddBannerslider" })
+            context.setisOpenPanel({ open: true, model: "Add Banner V1" })
           }
           className="flex items-center justify-center gap-2 !bg-blue-500 hover:bg-blue-600 !text-white font-semibold py-2 px-4 rounded whitespace-nowrap"
         >
-          Add Banner Image <FaPlus className="text-[15px] font-semibold" />
+          Add Banner V1 <FaPlus className="text-[15px] font-semibold" />
         </Button>
         {Sorting.length > 0 && (
           <Button
@@ -170,7 +166,7 @@ export default function BannerSliderTable() {
 
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
-                      {item.image !== 0 &&
+                      {Array.isArray(item.image) && item.image.length > 0 ? (
                         item.image.map((image, index) => (
                           <img
                             key={index}
@@ -178,13 +174,33 @@ export default function BannerSliderTable() {
                             alt={`Banner ${index}`}
                             className="w-[300px] h-[100px] object-cover rounded-md shadow-sm hover:scale-105 border border-gray-200"
                           />
-                        ))}
+                        ))
+                      ) : (
+                        <span className="text-gray-400">
+                          No image available
+                        </span>
+                      )}
                     </div>
                   </td>
 
                   <td className="px-6 py-4 pr-44">
                     <div className="flex justify-end items-center space-x-2">
                       <Tooltip title="Delete" placement="top" arrow>
+                        <Button
+                          className="!min-w-[32px] !h-8 !p-0 !bg-green-50 hover:!bg-green-100 !rounded-md"
+                          variant="text"
+                        >
+                          <AiTwotoneEdit
+                            onClick={() =>
+                              context.setisOpenPanel({
+                                open: true,
+                                model: "Edit Banner V1",
+                                id: item._id,
+                              })
+                            }
+                            className="text-green-600 text-lg"
+                          />
+                        </Button>
                         <Button
                           className="!min-w-[32px] !h-8 !p-0 !bg-red-50 hover:!bg-red-100 !rounded-md"
                           variant="text"

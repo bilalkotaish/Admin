@@ -187,10 +187,10 @@ export default function Addproduct() {
       context.Alertbox("error", "Please Provide Sub Category Id");
       return false;
     }
-    if (formfields.bannerImage.length === 0) {
-      context.Alertbox("error", "Please Provide Banner Image");
-      return false;
-    }
+    // if (formfields.bannerImage.length === 0) {
+    //   context.Alertbox("error", "Please Provide Banner Image");
+    //   return false;
+    // }
 
     // if (formfields.thirdsubcatId === "") {
     //   context.Alertbox("error", "Please Provide Third Sub Category Id");
@@ -612,53 +612,59 @@ export default function Addproduct() {
                 <h3 className="text-[22px] font-[600] mb-4"> Banner Images</h3>
 
                 <Switch
-                  onChange={() => handlebanner()}
+                  onChange={(e) => handlebanner(e)}
                   checked={checkswitch}
                   {...label}
                 />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pb-6">
-                {bannerpreview.length !== 0 &&
-                  bannerpreview.map((image, index) => (
-                    <div className="relative group" key={index}>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          removebannerImage(image, index);
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center z-10 shadow-md"
-                      >
-                        <IoCloseSharp className="text-sm" />
-                      </button>
+              {formfields.IsDisplayedHome && (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pb-6">
+                    {bannerpreview.length !== 0 &&
+                      bannerpreview.map((image, index) => (
+                        <div className="relative group" key={index}>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              removebannerImage(image, index);
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center z-10 shadow-md"
+                          >
+                            <IoCloseSharp className="text-sm" />
+                          </button>
 
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden h-[150px] w-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 flex items-center justify-center">
-                        <LazyLoadImage
-                          alt={image}
-                          effect="blur"
-                          className="w-full h-full object-cover"
-                          src={image.url}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden h-[150px] w-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 flex items-center justify-center">
+                            <LazyLoadImage
+                              alt={image}
+                              effect="blur"
+                              className="w-full h-full object-cover"
+                              src={image.url}
+                            />
+                          </div>
+                        </div>
+                      ))}
 
-                <FileUploadBox
-                  url="/api/product/uploadbannerimage"
-                  multiple={true}
-                  name="bannerImage"
-                  setpreviewfun={setpreviewbannerfun}
-                />
-              </div>{" "}
-              <div className="col">
-                <h3 className="text-[16px] font-[600] mb-2">Banner Title</h3>
-                <input
-                  type="text"
-                  name="bannerTitle"
-                  value={formfields.bannerTitle}
-                  onChange={onChangeInput}
-                  className=" no-spinner w-full h-[45px] rounded-md p-5 border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.5)]"
-                />
-              </div>
+                    <FileUploadBox
+                      url="/api/product/uploadbannerimage"
+                      multiple={true}
+                      name="bannerImage"
+                      setpreviewfun={setpreviewbannerfun}
+                    />
+                  </div>
+                  <div className="col">
+                    <h3 className="text-[16px] font-[600] mb-2">
+                      Banner Title
+                    </h3>
+                    <input
+                      type="text"
+                      name="bannerTitle"
+                      value={formfields.bannerTitle}
+                      onChange={onChangeInput}
+                      className=" no-spinner w-full h-[45px] rounded-md p-5 border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.5)]"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

@@ -31,7 +31,7 @@ import { AiTwotoneEdit } from "react-icons/ai";
 import { useContext } from "react";
 import { Mycontext } from "../../App";
 import Product from "../Products";
-import { deleteData, deleteMultipleData, fetchData } from "../../utils/api";
+import { deleteData, deleteMultiple, fetchData } from "../../utils/api";
 import Searchbox from "../../Components/Searchbox";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { IoMdEye } from "react-icons/io";
@@ -228,7 +228,7 @@ export default function Dashboard() {
   };
   const deleteMultiple = () => {
     if (Sorting.length > 0) {
-      deleteMultipleData("/api/product/deleteMultiple", {
+      deleteMultiple("/api/product/deleteMultiple", {
         ids: Sorting,
       })
         .then((res) => {

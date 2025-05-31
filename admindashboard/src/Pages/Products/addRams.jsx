@@ -36,6 +36,7 @@ export default function AddRams() {
         if (res.error === false) {
           setRam("");
           getRams();
+          setEditId("");
           context.Alertbox("success", res.message);
         } else {
           context.Alertbox("error", res.message);

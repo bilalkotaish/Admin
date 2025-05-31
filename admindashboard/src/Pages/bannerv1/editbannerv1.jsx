@@ -1,21 +1,22 @@
 import { Button, CircularProgress, MenuItem, Select } from "@mui/material";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Mycontext } from "../../App";
 import FileUploadBox from "../../Components/UploadBox";
 import { IoMdCloudUpload } from "react-icons/io";
 import { IoCloseSharp } from "react-icons/io5";
 import { LazyLoadImage } from "react-lazy-load-image-component";
-import { deleteData, postData } from "../../utils/api";
+import { deleteData, editData, fetchData, postData } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
-export default function Addbannerv1() {
+export default function Editbannerv1() {
   const [Cat, setCat] = useState("");
   const context = useContext(Mycontext);
   const [preview, setpreview] = useState([]);
   const [subCat, setsubCat] = useState("");
-  const [info, setinfo] = useState("");
-
   const [thirdsubCat, setthirdsubCat] = useState("");
   const [isLoading, setisLoading] = useState(false);
+  const history = useNavigate();
+  const [info, setinfo] = useState("");
 
   const handleChangesub = (event) => {
     setsubCat(event.target.value);
@@ -34,7 +35,10 @@ export default function Addbannerv1() {
         setisLoading(false);
       });
   };
-
+  const handleChangeInfo = (event) => {
+    setinfo(event.target.value);
+    formfields.info = event.target.value;
+  };
   const handleChangethirdsub = (event) => {
     setthirdsubCat(event.target.value);
     formfields.thirdsubcatId = event.target.value;
@@ -68,6 +72,29 @@ export default function Addbannerv1() {
     });
   };
 
+  useEffect(() => {
+    const id = context.isOpenPanel?.id;
+    console.log("Panel ID:", id);
+    if (id) {
+      fetchData(`/api/bannerv1/${context.isOpenPanel?.id}`).then((res) => {
+        console.log(res);
+
+        (formfields.title = res.data.title),
+          (formfields.catId = res.data.catId),
+          (formfields.image = res.data.image),
+          (formfields.subcatId = res.data.subcatId),
+          (formfields.thirdsubcatId = res.data.thirdsubcatId),
+          (formfields.price = res.data.price),
+          (formfields.info = res.data.info);
+        setpreview(res.data.image);
+        setCat(res.data.catId);
+        setsubCat(res.data.subcatId);
+        setthirdsubCat(res.data.thirdsubcatId);
+        setinfo(res.data.info);
+      });
+    }
+  }, [context.isOpenPanel]);
+
   const removeImage = (image, index) => {
     deleteData(`/api/bannerv1/deleteimage`, { fileId: image.fileId }).then(
       (res) => {
@@ -92,10 +119,6 @@ export default function Addbannerv1() {
     formfields.catId = event.target.value;
   };
 
-  const handleChangeInfo = (event) => {
-    setinfo(event.target.value);
-    formfields.info = event.target.value;
-  };
   const handlesubmit = (e) => {
     e.preventDefault();
     console.log(formfields);
@@ -121,20 +144,22 @@ export default function Addbannerv1() {
       return false;
     }
 
-    postData("/api/bannerv1/create", formfields).then((res) => {
-      console.log(res);
-      if (res.error !== true) {
-        setisLoading(false);
-        context.Alertbox("success", res.message);
+    editData(`/api/bannerv1/${context.isOpenPanel?.id}`, formfields).then(
+      (res) => {
         console.log(res);
+        if (res.error !== true) {
+          setisLoading(false);
+          context.Alertbox("success", res.message);
+          console.log(res);
 
-        setpreview([]);
-        context.setisOpenPanel(false);
-        history("/homebannerv1/list");
-      } else {
-        context.Alertbox("error", res.message);
+          setpreview([]);
+          context.setisOpenPanel(false);
+          history("/homebannerv1/list");
+        } else {
+          context.Alertbox("error", res.message);
+        }
       }
-    });
+    );
   };
   return (
     <>

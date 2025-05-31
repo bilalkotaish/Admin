@@ -16,6 +16,10 @@ import { useNavigate } from "react-router-dom";
 import { Mycontext } from "../../App";
 import CircularProgress from "@mui/material/CircularProgress";
 import { postData } from "../../utils/api.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseapp } from "../../firebase";
+const auth = getAuth(firebaseapp);
+const Googleprovider = new GoogleAuthProvider();
 
 export default function Signup() {
   const [loading, setLoading] = useState(false);
@@ -81,6 +85,43 @@ export default function Signup() {
       }
     });
   };
+
+  const authWithGoogle = () => {
+    signInWithPopup(auth, Googleprovider)
+      .then((result) => {
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        const user = result.user;
+        console.log("Logged in user:", user);
+
+        const field = {
+          name: user.displayName,
+          email: user.email,
+          password: null,
+          Avatar: user.photoURL,
+          Mobile: user.phoneNumber,
+          Role: "Admin",
+        };
+
+        postData("/api/user/googleauth", field).then((res) => {
+          if (!res.error) {
+            localStorage.setItem("userEmail", field.email);
+            localStorage.setItem("accesstoken", res.data.accesstoken);
+            localStorage.setItem("refreshtoken", res.data.refreshToken);
+            context.setisLogin(true);
+
+            context.Alertbox("success", res.message);
+
+            history("/");
+          } else {
+            context.Alertbox("error", res.message);
+          }
+        });
+      })
+      .catch((error) => {
+        console.error("Google Auth Error:", error);
+      });
+  };
   return (
     <section className="relative bg-white loginsection">
       <header className="w-full fixed z-50 !top-0 !left-0 px-4 py-2 flex !items-center !justify-between">
@@ -127,7 +168,7 @@ export default function Signup() {
         <div className="flex justify-center mt-5 gap-4">
           <Button
             size="small"
-            onClick={handleClick}
+            onClick={authWithGoogle}
             endIcon={<FcGoogle />}
             loading={loading}
             loadingPosition="end"
@@ -135,17 +176,6 @@ export default function Signup() {
             className="!bg-none !text-[14px] !capitalize hover:!bg-red-600 hover:text-white"
           >
             Sign Up With Google
-          </Button>
-          <Button
-            size="small"
-            onClick={handleClickfb}
-            endIcon={<FaFacebookSquare />}
-            loading={loadingfb}
-            loadingPosition="end"
-            variant="outlined"
-            className="!bg-none !text-[14px] !capitalize hover:!bg-red-600 hover:text-white"
-          >
-            Sign Up With Facebook
           </Button>
         </div>
         <br />

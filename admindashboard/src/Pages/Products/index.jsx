@@ -19,7 +19,7 @@ import Searchbox from "../../Components/Searchbox";
 import { Mycontext } from "../../App";
 import { fetchData, deleteData } from "../../utils/api";
 import { MdDeleteOutline } from "react-icons/md";
-import { deleteMultipleData } from "../../utils/api";
+import { deleteMultiple } from "../../utils/api";
 import CircularProgress from "@mui/material/CircularProgress";
 import Rating from "@mui/material/Rating";
 
@@ -125,7 +125,7 @@ export default function Product() {
   };
   const deleteMultiple = () => {
     if (Sorting.length > 0) {
-      deleteMultipleData("/api/product/deleteMultiple", {
+      deleteMultiple("/api/product/deleteMultiple", {
         ids: Sorting,
       })
         .then((res) => {
