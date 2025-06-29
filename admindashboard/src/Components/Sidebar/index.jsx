@@ -9,6 +9,8 @@ import { MdOutlineCategory } from "react-icons/md";
 import { FaAngleDown } from "react-icons/fa6";
 import { FaAngleUp } from "react-icons/fa6";
 import Collapse from "react-collapse";
+import { RiBloggerLine } from "react-icons/ri";
+import logo from "./../../assets/logo.png";
 
 import { LiaShippingFastSolid } from "react-icons/lia";
 import { useContext, useState } from "react";
@@ -33,11 +35,7 @@ export default function Sidebar() {
       <>
         <div className="py-2 w-full">
           <Link to="/">
-            <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqkD1n7pBUNJzunVpJd63Drrp_KE4hclGt3A&sg"
-              className="w-[200px]"
-              alt="Logo"
-            />
+            <img src={logo} className="w-[200px] h-auto" alt="Logo" />
           </Link>
         </div>
         {context.isSidebar === true && (
@@ -106,7 +104,7 @@ export default function Sidebar() {
                 <span className="ml-auto w-[30px] flex items-center justify-center h-[30px]">
                   <FaAngleDown
                     className={`transition-all ${
-                      submenuindex === 1 ? `rotate-180` : ""
+                      submenuindex === 4 ? `rotate-180` : ""
                     }`}
                   />
                 </span>
@@ -134,6 +132,50 @@ export default function Sidebar() {
                     >
                       <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]"></span>
                       Add Banner V1
+                    </Button>
+                  </li>
+                </ul>
+              </Collapse>
+            </li>
+            <li>
+              <Button
+                className="w-full !capitalize !justify-start !py-2  hover:!bg-[#f1f1f1] items-center flex gap-3 !font-[500]  text-[14px] !text-[rgba(0,0,0,0.9)] "
+                onClick={() => isOpenSub(5)}
+              >
+                {" "}
+                <RiBloggerLine className="text-[20px]" />
+                Blogs
+                <span className="ml-auto w-[30px] flex items-center justify-center h-[30px]">
+                  <FaAngleDown
+                    className={`transition-all ${
+                      submenuindex === 5 ? `rotate-180` : ""
+                    }`}
+                  />
+                </span>
+              </Button>
+
+              <Collapse isOpened={submenuindex === 5 ? true : false}>
+                <ul className="w-full">
+                  <li className="w-full">
+                    <Link to="/bloglist">
+                      <Button className="!text-[rgba(0,0,0,0.8)] !text-[13px] font-[600] !pl-8 w-full flex gap-3 !justify-start !capitalize">
+                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]"></span>
+                        Blog List
+                      </Button>
+                    </Link>
+                  </li>
+                  <li className="w-full">
+                    <Button
+                      onClick={() =>
+                        context.setisOpenPanel({
+                          open: true,
+                          model: "Add Blog",
+                        })
+                      }
+                      className="!text-[rgba(0,0,0,0.8)] !text-[13px] font-[600] !pl-8 w-full flex gap-3 !justify-start !capitalize"
+                    >
+                      <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]"></span>
+                      Add Blogs
                     </Button>
                   </li>
                 </ul>

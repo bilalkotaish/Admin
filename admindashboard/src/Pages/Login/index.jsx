@@ -154,11 +154,21 @@ export default function Login() {
     <section className="relative bg-white loginsection">
       <header className="w-full fixed z-50 !top-0 !left-0 px-4 py-2 flex !items-center !justify-between">
         <Link to="/">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa-W8dn-tap14EaxWD27PkQcQVMzdoxozotA&s"
-            className="w-[200px]"
-            alt="Logo"
-          />
+          <svg width="200" height="100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="white" />
+            <text
+              x="50%"
+              y="50%"
+              font-family="Arial, sans-serif"
+              font-size="24"
+              font-weight="bold"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              fill="black"
+            >
+              Billy Ecommerce
+            </text>
+          </svg>
         </Link>
 
         <div className="flex items-center gap-0">
@@ -179,14 +189,7 @@ export default function Login() {
         className="absolute w-full h-full top-0 left-0 object-cover opacity-30 z-10"
       />
 
-      <div className="loginbox card w-[550px] h-[auto] pb-20 mx-auto pt-2 relative z-50   ">
-        <div className="text-center ">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa-W8dn-tap14EaxWD27PkQcQVMzdoxozotA&s"
-            className=" mx-auto"
-            alt="Logo"
-          />
-        </div>
+      <div className="loginbox card w-[550px] pt-56 h-[auto] pb-20 mx-auto pt-2 relative z-50   ">
         <h1 className="text-center text-[35px] font-[700]">
           {" "}
           Welcome Back!!

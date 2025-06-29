@@ -8,8 +8,8 @@ import { Link } from "react-router-dom";
 import { Button, CircularProgress, Rating } from "@mui/material";
 import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -35,100 +35,150 @@ import { deleteData, deleteMultiple, fetchData } from "../../utils/api";
 import Searchbox from "../../Components/Searchbox";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { IoMdEye } from "react-icons/io";
+import StatusBadge from "../../Components/Badge";
 
 export default function Dashboard() {
   const [openPopupIndex, setOpenPopupIndex] = useState(null);
   const context = useContext(Mycontext);
   const label = { inputProps: { "aria-label": "Checkbox demo" } };
   const [Cat, setCat] = useState("");
+  const [orderData, setOrderData] = useState([]);
   const [subCat, setsubCat] = useState("");
   const [thirdsubCat, setthirdsubCat] = useState("");
   const [product, setProduct] = useState([]);
+  const [displayType, setDisplayType] = useState("both");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(10);
   const [perPage, setPerPage] = useState(1);
   const [Sorting, setSorting] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryfilter, setcategoryfilter] = useState("");
+  const [currentPage1, setCurrentPage1] = useState(1);
+  const [perPage1, setPerPage1] = useState(10);
+  const [users, setUsers] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [productcount, setProductcount] = useState([]);
 
-  const [chart1data, setchart1data] = useState([
-    {
-      name: "JAN",
-      Totalusers: 4000,
-      Totalsales: 2400,
-      amt: 2400,
-    },
-    {
-      name: "FEB",
-      Totalusers: 3000,
-      Totalsales: 1398,
-      amt: 2210,
-    },
-    {
-      name: "MARCH",
-      Totalusers: 2000,
-      Totalsales: 9800,
-      amt: 2290,
-    },
-    {
-      name: "APRIL",
-      Totalusers: 2780,
-      Totalsales: 3908,
-      amt: 2000,
-    },
-    {
-      name: "MAY",
-      Totalusers: 1890,
-      Totalsales: 4800,
-      amt: 2181,
-    },
-    {
-      name: "JUNE",
-      Totalusers: 2390,
-      Totalsales: 3800,
-      amt: 2500,
-    },
-    {
-      name: "JULY",
-      Totalusers: 3490,
-      Totalsales: 4300,
-      amt: 2100,
-    },
-    {
-      name: "AUG",
-      Totalusers: 3490,
-      Totalsales: 4300,
-      amt: 2100,
-    },
-    {
-      name: "SEP",
-      Totalusers: 3490,
-      Totalsales: 4300,
-      amt: 2100,
-    },
-    {
-      name: "OCT",
-      Totalusers: 3490,
-      Totalsales: 4300,
-      amt: 2100,
-    },
-    {
-      name: "NOV",
-      Totalusers: 3490,
-      Totalsales: 4300,
-      amt: 2100,
-    },
-    {
-      name: "DEC",
-      Totalusers: 3490,
-      Totalsales: 4300,
-      amt: 2100,
-    },
-  ]);
+  const totalPages1 = Math.ceil(orderData.length / perPage1);
+
+  // Handlers
+  const handlePageChange1 = (event, value) => {
+    setCurrentPage1(value);
+  };
+
+  const handleLimitChange1 = (event) => {
+    setPerPage1(event.target.value);
+    setCurrentPage1(1); // Reset to first page when limit changes
+  };
+
+  // Slice data
+  const paginatedData1 = orderData.slice(
+    (currentPage1 - 1) * perPage1,
+    currentPage1 * perPage1
+  );
+
+  const [chartdata, setchartdata] = useState([]);
+  const [years, setYears] = useState(new Date().getFullYear());
+
+  const fetchChartData = async () => {
+    try {
+      const usersRes = await fetchData("/api/orders/getusers");
+      const salesRes = await fetchData("/api/orders/getsales");
+
+      // Create maps keyed by month
+      const usersMap = new Map();
+      usersRes.MonthlyUsers?.forEach((u) => {
+        usersMap.set(u.month, parseInt(u.TotalUsers));
+      });
+
+      const salesMap = new Map();
+      salesRes.MonthlySales?.forEach((s) => {
+        salesMap.set(s.month, parseInt(s.totalSales));
+      });
+
+      // Get all months (union of both keys)
+      const months = Array.from(
+        new Set([...usersMap.keys(), ...salesMap.keys()])
+      );
+
+      // Build merged array
+      const merged = months.map((month) => ({
+        name: month,
+        TotalUsers: usersMap.get(month) || 0,
+        Totalsales: salesMap.get(month) || 0,
+      }));
+
+      setchartdata(merged);
+    } catch (err) {
+      context.Alertbox("error", err.message);
+    }
+  };
+
+  // Call this function once (e.g. on component mount)
+  useEffect(() => {
+    fetchChartData();
+  }, []);
+
+  const handleChangeYear = (event) => {
+    setYears(event.target.value);
+  };
 
   const handleChangeCatFilter = (event) => {
     setcategoryfilter(event.target.value);
   };
+  useEffect(() => {
+    // getTotalSales();
+    const getOrderData = async () => {
+      const res = await fetchData(`/api/orders/get`);
+      if (res.error) {
+        context.Alertbox("error", res.message);
+      } else {
+        setOrderData(res.data);
+        console.log("Order Data:", res.data);
+      }
+    };
+
+    getOrderData();
+  }, [context.Alertbox, context.userData?._id]);
+
+  useEffect(() => {
+    fetchData(`/api/user/getallusers`)
+      .then((res) => {
+        if (res.error) {
+          context.Alertbox("error", res.message);
+        } else {
+          setUsers(res.users);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch users:", err);
+      });
+
+    fetchData(`/api/user/getallreviews`)
+      .then((res) => {
+        if (res.error) {
+          context.Alertbox("error", res.message);
+        } else {
+          setReviews(res.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch reviews:", err);
+      });
+
+    fetchData(`/api/product/productsCount`)
+      .then((res) => {
+        if (res.error) {
+          context.Alertbox("error", res.message);
+        } else {
+          console.log("Product Count:", res.data);
+          setProductcount(res.ProductCount);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch productcount:", err);
+      });
+  }, []);
 
   const handleTogglePopup = (index) => {
     if (openPopupIndex === index) {
@@ -323,7 +373,7 @@ export default function Dashboard() {
           <h1 className="text-[30px] font-[500] leading-10 mb-3">
             {" "}
             Good Morning, <br />
-            Mr.Bilal{" "}
+            <span className="text-primary">Mr.{context.userData?.name} </span>
             <MdWavingHand className="rotate-270 !text-[#FFFF00] text-[35px] font-[500]" />{" "}
           </h1>
           <p>
@@ -342,8 +392,15 @@ export default function Dashboard() {
         </div>
         <FcShop className="w-[250px] h-[250px] justify-right" />
       </div>
-
-      <DashboardBox />
+      {product.length !== 0 && orderData.length !== 0 && (
+        <DashboardBox
+          product={productcount}
+          orderData={orderData?.length}
+          catData={context.catData?.length}
+          users={users?.length}
+          reviews={reviews?.length}
+        />
+      )}
 
       <div className="card my-3 shadow-md sm:rounded-lg bg-white pt-2">
         <div className="card mt-4 mb-6 shadow-lg sm:rounded-xl bg-white">
@@ -511,11 +568,12 @@ export default function Dashboard() {
                             <div className="flex flex-col">
                               <Link to={`/product/${product._id}`}>
                                 <h3 className="!text-[12px] font-semibold hover:text-primary line-clamp-2">
-                                  {product.description || "N/A"}
+                                  {product.description.substring(0, 20) ||
+                                    "N/A"}
                                 </h3>
                               </Link>
-                              <span className="text-xs text-gray-500 font-[600]">
-                                {product.name}
+                              <span className="text-xs whitespace-nowrap text-gray-500 font-[600]">
+                                {product.name.substring(0, 20)}
                               </span>
                             </div>
                           </div>
@@ -652,247 +710,242 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="card my-3 shadow-md sm:rounded-lg bg-white">
-        <div className="flex items-center justify-between px-4 py-5">
-          <h1 className="text-[18px] font-[600]"> Your Orders</h1>
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        {/* Header */}
+        <div className="border-b border-gray-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-gray-800">My Orders</h2>
+          <p className="text-sm text-gray-600">
+            There are{" "}
+            <span className="text-primary font-semibold">
+              {orderData?.length}
+            </span>{" "}
+            Orders in Total
+          </p>
         </div>
-        <div className="overflow-x-auto relative mt-5">
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+
+        {/* Orders Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-600">
+            <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
               <tr>
-                <th className="px-6 py-3">&nbsp;</th>
-                <th className="px-6 py-3">Order Id</th>
-                <th className="px-6 py-3">Payments</th>
-                <th className="px-6 py-3">Products</th>
+                <th className="px-6 py-3"></th>
+                <th className="px-6 py-3">Order ID</th>
+                <th className="px-6 py-3">Payment</th>
                 <th className="px-6 py-3">Name</th>
-                <th className="px-6 py-3">UserId</th>
-                <th className="px-6 py-3">Phone Number</th>
+                <th className="px-6 py-3">Phone</th>
                 <th className="px-6 py-3">Address</th>
-                <th className="px-6 py-3">Total Amount</th>
-                <th className="px-6 py-3">Pin Code</th>
+                <th className="px-6 py-3">Total</th>
+                <th className="px-6 py-3">Pincode</th>
                 <th className="px-6 py-3">Email</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Date</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="bg-white border-b border-gray-200">
-                <td className="px-6 py-4">
-                  <Button
-                    onClick={() => handleTogglePopup(0)}
-                    className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !bg-[#f1f1f1]"
+              {paginatedData1.map((item, index) => {
+                const globalIndex = (currentPage1 - 1) * perPage1 + index;
+                return (
+                  <tr
+                    key={item._id}
+                    className="bg-white border-b hover:bg-gray-50 transition"
                   >
-                    {openPopupIndex === 0 ? (
-                      <FaAngleUp className="text-gray-600 text-[16px]" />
-                    ) : (
-                      <FaAngleDown className="text-gray-600 text-[16px]" />
-                    )}
-                  </Button>
-                </td>
-                <td className="px-6 py-4 text-primary font-[600]">1213</td>
-                <td className="px-6 py-4">paypal</td>
-                <td className="px-6 py-4">casual Shirt</td>
-                <td className="px-6 py-4">Bilal kotaish</td>
-                <td className="px-6 py-4 text-primary font-[600]">1213</td>
-                <td className="px-6 py-4">78994740</td>
-                <td className="px-6 py-4 w-[300px]">asdasdasdasdxczasdasd</td>
-                <td className="px-6 py-4">1250$</td>
-                <td className="px-6 py-4">0000</td>
-                <td className="px-6 py-4">bilal@gmail.com</td>
-                <td className="px-6 py-4">
-                  <Badge status="Canceled" />
-                </td>
-                <td className="px-6 py-4">24-10-2023</td>
-              </tr>
-
-              <tr className="bg-white border-b border-gray-200">
-                <td className="px-6 py-4">
-                  <Button
-                    onClick={() => handleTogglePopup(1)}
-                    className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !bg-[#f1f1f1]"
-                  >
-                    {openPopupIndex === 1 ? (
-                      <FaAngleUp className="text-gray-600 text-[16px]" />
-                    ) : (
-                      <FaAngleDown className="text-gray-600 text-[16px]" />
-                    )}
-                  </Button>
-                </td>
-                <td className="px-6 py-4 text-primary !font-[600]">1213</td>
-                <td className="px-6 py-4">paypal</td>
-                <td className="px-6 py-4">casual Shirt</td>
-                <td className="px-6 py-4">Bilal kotaish</td>
-                <td className="px-6 py-4 text-primary font-[600]">1213</td>
-                <td className="px-6 py-4">78994740</td>
-                <td className="px-6 py-4 w-[300px]">asdasdasdasdxczasdasd</td>
-                <td className="px-6 py-4">1250$</td>
-                <td className="px-6 py-4">0000</td>
-                <td className="px-6 py-4">bilal@gmail.com</td>
-                <td className="px-6 py-4">
-                  <Badge status="Canceled" />
-                </td>
-                <td className="px-6 py-4">24-10-2023</td>
-              </tr>
+                    <td className="px-6 py-4">
+                      <Button
+                        onClick={() => handleTogglePopup(globalIndex)}
+                        className="w-10 h-10 min-w-10 rounded-full bg-gray-100 hover:bg-gray-200"
+                      >
+                        {openPopupIndex === globalIndex ? (
+                          <FaAngleUp className="text-gray-600 text-lg" />
+                        ) : (
+                          <FaAngleDown className="text-gray-600 text-lg" />
+                        )}
+                      </Button>
+                    </td>
+                    <td className="px-6 py-4 text-primary">{item._id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {item.PaymentId}
+                    </td>
+                    <td className="px-6 py-4">{context.userData?.name}</td>
+                    <td className="px-6 py-4">{item.deliver_address.Mobile}</td>
+                    <td className="px-6 py-4 w-[500px] whitespace-nowrap overflow-hidden text-ellipsis">
+                      {[
+                        item.deliver_address.Address_Type,
+                        item.deliver_address.Address_line,
+                        item.deliver_address.City,
+                        item.deliver_address.State,
+                        item.deliver_address.Country,
+                        item.deliver_address.landmark,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-primary">
+                      ${item.Total}
+                    </td>
+                    <td className="px-6 py-4">
+                      {item.deliver_address.Pincode}
+                    </td>
+                    <td className="px-6 py-4">{context.userData?.email}</td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={item.orderStatus} />
+                    </td>
+                    <td className="px-6 py-4">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 gap-4">
+            <div className="w-full sm:w-auto">
+              <label className="font-semibold text-[14px] mb-1 block">
+                Items Per Page
+              </label>
+              <Select
+                className="w-1/2 sm:w-[70px]"
+                size="small"
+                value={perPage1}
+                onChange={handleLimitChange1}
+              >
+                <MenuItem value={1}>1</MenuItem>
+                <MenuItem value={5}>5</MenuItem>
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={20}>20</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+              </Select>
+            </div>
+
+            <Pagination
+              count={totalPages1}
+              page={currentPage1}
+              color="primary"
+              onChange={handlePageChange1}
+            />
+          </div>
         </div>
-
-        {openPopupIndex === 0 && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-4xl relative">
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl"
-                onClick={() => setOpenPopupIndex(null)}
-              >
-                ×
-              </button>
-              <h2 className="text-xl font-bold mb-4">Order Details</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
-                  <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3">Product Id</th>
-                      <th className="px-6 py-3">Title</th>
-                      <th className="px-6 py-3">Image</th>
-                      <th className="px-6 py-3">Quantity</th>
-                      <th className="px-6 py-3">Price</th>
-                      <th className="px-6 py-3">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-white border-b border-gray-200">
-                      <td className="px-6 py-4 text-primary font-[600]">
-                        1234
-                      </td>
-                      <td className="px-6 py-4 text-primary font-[600]">
-                        Shirt
-                      </td>
-                      <td className="px-6 py-4">
-                        <img
-                          src="https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg"
-                          className="w-[40px] h-[50px] object-cover rounded-md"
-                        />
-                      </td>
-                      <td className="px-6 py-4">1</td>
-                      <td className="px-6 py-4">25$</td>
-                      <td className="px-6 py-4 text-primary font-[600]">25$</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 text-right">
-                <button
-                  onClick={() => setOpenPopupIndex(null)}
-                  className="bg-primary text-white px-4 py-2 rounded"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {openPopupIndex === 1 && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-4xl relative">
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl"
-                onClick={() => setOpenPopupIndex(null)}
-              >
-                ×
-              </button>
-              <h2 className="text-xl font-bold mb-4">Order Details</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
-                  <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3">Product Id</th>
-                      <th className="px-6 py-3">Title</th>
-                      <th className="px-6 py-3">Image</th>
-                      <th className="px-6 py-3">Quantity</th>
-                      <th className="px-6 py-3">Price</th>
-                      <th className="px-6 py-3">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-white border-b border-gray-200">
-                      <td className="px-6 py-4 text-primary font-[600]">
-                        1234
-                      </td>
-                      <td className="px-6 py-4 text-primary font-[600]">
-                        Shirt
-                      </td>
-                      <td className="px-6 py-4">
-                        <img
-                          src="https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg"
-                          className="w-[40px] h-[50px] object-cover rounded-md"
-                        />
-                      </td>
-                      <td className="px-6 py-4">1</td>
-                      <td className="px-6 py-4">25$</td>
-                      <td className="px-6 py-4 text-primary font-[600]">25$</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 text-right">
-                <button
-                  onClick={() => setOpenPopupIndex(null)}
-                  className="bg-primary text-white px-4 py-2 rounded"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {openPopupIndex !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-5xl relative">
+            <button
+              className="absolute top-3 right-4 text-2xl text-gray-400 hover:text-red-500"
+              onClick={() => setOpenPopupIndex(null)}
+            >
+              ×
+            </button>
+            <h3 className="text-lg font-bold mb-5 text-gray-800">
+              Order Details
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left text-gray-700">
+                <thead className="bg-gray-100 text-xs uppercase text-gray-600">
+                  <tr>
+                    <th className="px-6 py-3">ID</th>
+                    <th className="px-6 py-3">Title</th>
+                    <th className="px-6 py-3">Image</th>
+                    <th className="px-6 py-3">Quantity</th>
+                    <th className="px-6 py-3">Price</th>
+                    <th className="px-6 py-3">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderData[openPopupIndex]?.products?.map((product, idx) => (
+                    <tr
+                      key={idx}
+                      className="bg-white border-b hover:bg-gray-50 transition"
+                    >
+                      <td className="px-6 py-4 text-primary">
+                        {product.productId?._id}
+                      </td>
+                      <td className="px-6 py-4">
+                        {product.productId?.name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <img
+                          src={
+                            product?.productId?.images?.[0]?.url ||
+                            "https://via.placeholder.com/50"
+                          }
+                          className="w-[50px] h-[60px] object-cover rounded-md border"
+                          alt="product"
+                        />
+                      </td>
+                      <td className="px-6 py-4">{product.quantity}</td>
+                      <td className="px-6 py-4">${product.price}</td>
+                      <td className="px-6 py-4 font-semibold text-primary">
+                        ${product.SubTotal}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card my-4 shadow-md sm:rounded-lg bg-white">
         <div className="flex items-center justify-between px-5 py-5">
           <h2 className="text-[18px] font-[600] ">Total Users & Total Sales</h2>
         </div>
         <div className="flex items-center justify-start gap-4 px-5 py-5 pt-0">
-          <span className="flex items-center gap-3">
+          <span
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => setDisplayType("users")}
+          >
             <span className="block w-[10px] h-[10px] rounded-full bg-green-600"></span>
             <span>Total Users</span>
           </span>
-          <span className="flex items-center gap-3">
+          <span
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => setDisplayType("sales")}
+          >
             <span className="block w-[10px] h-[10px] rounded-full bg-orange-600"></span>
             <span>Total Sales</span>
           </span>
+          <span
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => setDisplayType("both")}
+          >
+            <span className="block w-[10px] h-[10px] rounded-full bg-gray-600"></span>
+            <span>Both</span>
+          </span>
         </div>
 
-        <LineChart
-          width={1000}
-          height={500}
-          data={chart1data}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="none" />
-          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="Totalsales"
-            stroke="#16a34a"
-            strokeWidth={2}
-            activeDot={{ r: 8 }}
-          />
-          <Line
-            type="monotone"
-            strokeWidth={2}
-            dataKey="Totalusers"
-            stroke="#ea580c"
-          />
-        </LineChart>
+        {chartdata.length > 0 && displayType && (
+          <BarChart
+            width={1000}
+            height={500}
+            data={chartdata}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="none" />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip />
+            <Legend />
+
+            {(displayType === "users" || displayType === "both") && (
+              <Bar
+                dataKey="TotalUsers"
+                fill="#16a34a"
+                barSize={30}
+                name="Total Users"
+              />
+            )}
+
+            {(displayType === "sales" || displayType === "both") && (
+              <Bar
+                dataKey="Totalsales"
+                fill="#ea580c"
+                barSize={30}
+                name="Total Sales"
+              />
+            )}
+          </BarChart>
+        )}
       </div>
     </>
   );
